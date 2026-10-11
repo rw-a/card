@@ -78,6 +78,13 @@ saying why). Formatting follows the existing style: single quotes, semicolons, t
 `styled-system/` and the legacy template fixtures in `tests/fixtures/` are left alone by both tools.
 CI runs `npm run lint` and `npm run format:check` on every pull request.
 
+Commits that only reformat code are listed in `.git-blame-ignore-revs`. GitHub's blame view skips
+them automatically; to make local `git blame` do the same, run once:
+
+```bash
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
+
 ## UI components and styling
 
 The interface uses Park UI's Solid components, built on Ark UI, with the default
