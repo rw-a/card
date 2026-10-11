@@ -140,11 +140,46 @@ code {
   max-width: 100%;
   white-space: nowrap;
 }
-.topbar-right .card-size {
-  flex: 0 0 auto;
-}
 .persist-warning {
   flex: 0 0 auto;
+}
+/* The help dialog: plain reading text with headings. */
+.help-body {
+  gap: 0;
+  color: var(--text);
+  line-height: 1.5;
+}
+.help-body h3 {
+  margin: 18px 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.help-body h3:first-child {
+  margin-top: 0;
+}
+.help-body p,
+.help-body ol,
+.help-body ul {
+  margin: 0 0 6px;
+}
+.help-body ol,
+.help-body ul {
+  display: grid;
+  gap: 4px;
+  padding-left: 20px;
+}
+.help-body ol {
+  list-style: decimal;
+}
+.help-body ul {
+  list-style: disc;
+}
+.help-body .help-shortcuts {
+  width: 100%;
+}
+.help-body .csv-help-steps {
+  max-width: none;
+  margin: 0 0 6px;
 }
 
 /* Control layout; visual styles come from Park UI recipes. */
@@ -1433,15 +1468,16 @@ input.color {
   .preview-stage {
     max-width: 100%;
   }
-  .topbar-right {
-    display: none;
-  }
 }
 
 @media (max-width: 600px) {
-  /* Only the tabs stay in the top bar, so every page starts higher up. */
+  /* Only the tabs and Help stay in the top bar, so every page starts higher up; Help sits top-right. */
+  .topbar-right {
+    align-self: start;
+  }
   .topbar {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 4px;
     justify-items: center;
     height: auto;
     padding: 4px 8px 0;
@@ -1475,6 +1511,14 @@ input.color {
   }
   .steps [data-part='trigger'] {
     padding-inline: 10px;
+  }
+}
+
+/* Narrow phones: tighter tabs leave room for Help beside them. */
+@media (max-width: 400px) {
+  .steps [data-part='trigger'] {
+    padding-inline: 5px;
+    gap: 5px;
   }
 
   .data-layout {

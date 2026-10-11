@@ -4,6 +4,7 @@ import { SAMPLE_CSV, parseCsv, readFileAsText } from '../lib/csv';
 import { columnStats } from '../lib/stats';
 import { dataset, ignoreEmpty, setDataset, setIgnoreEmpty, setTab, usedColumns } from '../lib/store';
 import Brand from './Brand';
+import { CsvSteps } from './Help';
 import { Section, Switch, Button, Textarea, Notice, Badge, Table, Heading, Disclosure } from './ui';
 
 /** Spreadsheet files that must be saved as CSV first (they are binary, not text). */
@@ -109,23 +110,7 @@ export default function DataPanel() {
             </Button>
           </div>
           <Disclosure label="How do I make a CSV file?" class="csv-help" open={csvHelpOpen()} onOpenChange={setCsvHelpOpen} data-testid="csv-help">
-            <ul class="csv-help-steps">
-              <li>
-                <strong>Excel:</strong> choose <em>File → Save As</em> (or <em>Save a Copy</em>), set the file type to{' '}
-                <em>CSV UTF-8 (Comma delimited) (.csv)</em>, and save. Only the sheet that is open is saved.
-              </li>
-              <li>
-                <strong>Google Sheets:</strong> choose <em>File → Download → Comma-separated values (.csv)</em>. Only the sheet that is open is
-                downloaded.
-              </li>
-              <li>
-                <strong>Numbers:</strong> choose <em>File → Export To → CSV</em>.
-              </li>
-              <li>
-                <strong>Or skip the file:</strong> select the cells in your spreadsheet (including the column names), copy them, and choose{' '}
-                <em>Paste text</em>.
-              </li>
-            </ul>
+            <CsvSteps />
           </Disclosure>
           <Show when={pasteOpen()}>
             {/* Only keeps clicks inside the box from reaching the drop zone behind it; not an interaction of its own. */}

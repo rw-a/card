@@ -23,6 +23,7 @@ import {
   setSides,
   storedGet,
   VARIANTS,
+  expectCardSize,
 } from './helpers';
 import type { ImageElement, Template, TextElement } from '../../src/lib/types';
 
@@ -165,7 +166,7 @@ test.describe('Sides: modes', () => {
     await editSide(page, 'front');
     await expect(canvasCard(page)).toHaveCSS('background-color', 'rgb(255, 255, 255)');
     await expect(canvasCard(page)).toHaveCSS('width', /^340\.\d+px$|^340px$/); // 90 mm at 96 dpi
-    await expect(page.getByTestId('topbar-info')).toHaveText('90 × 140 mm');
+    await expectCardSize(page, 90, 140);
     const t = await getTemplate(page);
     const frontName = t.sides.front.elements.find((e) => e.name === 'Name')!;
     const backName = t.sides.back!.elements.find((e) => e.name === 'Name')!;
@@ -181,7 +182,7 @@ test.describe('Sides: modes', () => {
     // Only "different" names the side: one shared design needs no label
     await setSides(page, 'same');
     await expect(page.getByTestId('background-heading')).toHaveText('Background');
-    await expect(page.getByTestId('topbar-info')).toHaveText('90 × 140 mm');
+    await expectCardSize(page, 90, 140);
   });
 
   test('a shrunk card is checked on each editable side', async ({ page }) => {
@@ -277,9 +278,9 @@ test.describe('Sides: undo and redo', () => {
     await loadSample(page);
     await setSides(page, 'different');
     await page.getByRole('button', { name: 'Swap orientation' }).click();
-    await expect(page.getByTestId('topbar-info')).toHaveText('140 × 100 mm');
+    await expectCardSize(page, 140, 100);
     await page.keyboard.press('Control+z');
-    await expect(page.getByTestId('topbar-info')).toHaveText('100 × 140 mm');
+    await expectCardSize(page, 100, 140);
     expect((await getTemplate(page)).sidedness).toBe('different');
   });
 });

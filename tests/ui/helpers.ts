@@ -147,6 +147,11 @@ export function getEditor(page: Page): Promise<{ activeSide: SideId; selectedId:
 
 type StoredKey = 'template' | 'dataset' | 'template-pristine';
 
+/** Wait until the card has this size (mm). */
+export async function expectCardSize(page: Page, width: number, height: number) {
+  await expect.poll(async () => (await getTemplate(page)).card).toMatchObject({ width, height });
+}
+
 /** Read a value straight from the app's persistent storage (IndexedDB, or its fallback). */
 export function storedGet<T = unknown>(page: Page, key: StoredKey): Promise<T | undefined> {
   return page.evaluate((k) => window.cardMaker.storage.get(k), key) as Promise<T | undefined>;

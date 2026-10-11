@@ -1,3 +1,4 @@
+import { dialog } from "./dialog";
 import { spinner } from "./spinner";
 import { absoluteCenter } from "./absolute-center";
 import { group } from "./group";
@@ -43,4 +44,5 @@ export const slotRecipes = {
   alert,
   card,
   splitter,
+  dialog,
 }

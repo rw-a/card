@@ -231,3 +231,25 @@ test('on phones the Fit Check can be collapsed to its heading and opened again',
   await expect(page.locator('.previews-strip .preview:visible')).toHaveCount(3);
   await expectNoOverflow(page, 'design tab with the fit check toggled');
 });
+
+test('on phones Help is in the top-right corner, clear of the tabs, and its instructions fit the screen', async ({ page }) => {
+  await loadSample(page);
+  for (const width of [320, 375]) {
+    await page.setViewportSize({ width, height: 667 });
+    const tabs = (await page.getByTestId('steps').boundingBox())!;
+    const help = (await page.getByRole('button', { name: 'Help' }).boundingBox())!;
+    expect(help.x, `${width}px`).toBeGreaterThanOrEqual(tabs.x + tabs.width); // no overlap
+    expect(width - (help.x + help.width), `${width}px`).toBeLessThanOrEqual(12); // right edge
+    expect(help.y, `${width}px`).toBeLessThanOrEqual(8); // top
+    await expectNoOverflow(page, `${width}px top bar with Help`);
+  }
+  await page.getByRole('button', { name: 'Help' }).tap();
+  const dialog = page.getByRole('dialog', { name: 'How to use Card Maker' });
+  await expect(dialog).toBeVisible();
+  const box = (await dialog.boundingBox())!;
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(375);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+  await dialog.getByRole('button', { name: 'Close help' }).tap();
+  await expect(dialog).toBeHidden();
+});

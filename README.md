@@ -49,7 +49,10 @@ and never uploaded.
 2. **Design** — edit the starter card: click an element to change it, drag it to move it, and add
    text, shapes or pictures. Insert a column into text with `{{Column name}}`.
 3. **Print** — choose the paper and settings, check the preview, then choose
-   **Print / Save as PDF…**.
+   **Print / Save as PDF**.
+
+For a short version of these instructions inside the app, choose the **?** (Help) button in the
+top-right corner.
 
 ## Preparing your data
 
@@ -156,7 +159,7 @@ card are filled in from the same row.
 1. Choose the paper size and orientation, and set the margin and the gaps between cards. The
    summary shows how many cards fit on a sheet and how many sheets are needed.
 2. Under **What to Print**, set the number of copies, or list rows to reprint (e.g. `1-10, 14`).
-3. Choose **Print / Save as PDF…**. In the print dialog, set the scale to **100%**, margins to
+3. Choose **Print / Save as PDF**. In the print dialog, set the scale to **100%**, margins to
    **None**, and turn on **Background graphics** so colours print. Choose _Save as PDF_ to keep a
    file.
 

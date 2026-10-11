@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { goTo, loadSample, openApp, selectOption, setField, setSides } from './helpers';
+import { goTo, loadSample, openApp, selectOption, setField, setSides, expectCardSize } from './helpers';
 
 /** Horizontal centre of the step tabs minus the centre of the window (px). */
 async function tabsOffCentre(page: Page): Promise<number> {
@@ -27,18 +27,18 @@ test.describe('Top bar', () => {
     ]) {
       await setField(page, 'Width', w);
       await setField(page, 'Height', h);
-      await expect(page.getByTestId('topbar-info')).toContainText(`${w} × ${h} mm`);
+      await expectCardSize(page, w, h);
       expect(await tabPositions(page), `size ${w}×${h}`).toEqual(start);
     }
   });
 
-  test('card dimensions stay visible beside the tabs', async ({ page }) => {
+  test('Help sits at the right end of the top bar, clear of the tabs', async ({ page }) => {
     await loadSample(page);
     const tabs = (await page.getByTestId('steps').boundingBox())!;
-    const info = (await page.getByTestId('topbar-info').boundingBox())!;
-    expect(info.x).toBeGreaterThanOrEqual(tabs.x + tabs.width); // no overlap
-    expect(info.x + info.width).toBeLessThanOrEqual(page.viewportSize()!.width);
-    await expect(page.getByTestId('topbar-info')).toHaveText('100 × 140 mm');
+    const help = (await page.getByRole('button', { name: 'Help' }).boundingBox())!;
+    expect(help.x).toBeGreaterThanOrEqual(tabs.x + tabs.width); // no overlap
+    expect(page.viewportSize()!.width - (help.x + help.width)).toBeLessThan(24); // at the right edge
+    await expect(page.locator('.topbar')).not.toContainText(' mm'); // no card size up here any more
   });
 
   test('the tabs are centred on every tab and with or without data', async ({ page }) => {

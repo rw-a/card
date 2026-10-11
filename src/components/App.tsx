@@ -1,7 +1,8 @@
 import { For, Show } from 'solid-js';
-import { dataset, dismissStartupNotice, persistError, rows, setTab, startupNotice, tab, template, type Tab } from '../lib/store';
+import { dataset, dismissStartupNotice, persistError, rows, setTab, startupNotice, tab, type Tab } from '../lib/store';
 import Brand from './Brand';
 import DataPanel from './DataPanel';
+import Help from './Help';
 import Designer from './Designer';
 import PrintPanel from './PrintPanel';
 import { Badge, Button, Notice, Tabs } from './ui';
@@ -44,10 +45,8 @@ export default function App() {
           </For>
           <Tabs.Indicator />
         </Tabs.List>
-        <div class="topbar-right muted small" data-testid="topbar-info">
-          <span class="card-size">
-            {template.card.width} × {template.card.height} mm
-          </span>
+        <div class="topbar-right">
+          <Help />
         </div>
       </header>
 

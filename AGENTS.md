@@ -45,6 +45,13 @@ Before finishing a change, run `npm run typecheck`, `npm run lint`, `npm run for
 - **Linting:** `.oxlintrc.json`; every disabled rule has a comment explaining why. Notable: Solid
   assigns `let el!: HTMLElement` through `ref={el}`, so `no-unassigned-vars` is off.
 - **Formatting-only commits** go in `.git-blame-ignore-revs`.
+- **Help text** in `Help.tsx` is a short version of `README.md`; when a user-facing feature changes,
+  update both.
+- **Adding Park UI components** with `npx @park-ui/cli add <name>`: the CLI may generate
+  `createStyleContext` (replace it with `createSlotRecipeContext`, which this Panda version uses) and
+  register slot recipes under `recipes` in `src/theme/recipes/index.ts` (move them to `slotRecipes`).
+  Render dialogs and other overlays in a `Portal` so they inherit no styles from where they are
+  placed.
 - **Comments** explain why, in plain sentences; match the density of the surrounding code.
 - **No backwards compatibility yet.** The app has no users to keep, so there is no migration
   code. Saved data that fails validation is cleared (see Persistence). When compatibility starts
@@ -61,6 +68,7 @@ Before finishing a change, run `npm run typecheck`, `npm run lint`, `npm run for
 src/
   components/
     App.tsx             tabs, top bar, startup/persistence notices
+    Help.tsx            Help button and instructions dialog; CsvSteps (also used on the Data tab)
     Brand.tsx           app name (top bar; Data page title on phones)
     DataPanel.tsx       CSV upload/paste/sample, preview table, per-column length stats
     Designer.tsx        design toolbar, canvas, drag/resize, shortcuts, zoom, editor/fit-check splitter
@@ -73,7 +81,7 @@ src/
     TextBox.tsx         text layer with shrink-to-fit and fit measurement
     PrintPanel.tsx      paper, cutting, copies/rows, summary, sheet preview, print run
     ui.tsx              app compositions of Park UI controls (Field, Select, PictureControl…)
-    park/               Park UI component source (generated)
+    park/               Park UI component source (generated; dialog.tsx added with the CLI, see below)
   theme/                Park UI tokens and recipes (generated)
   lib/
     types.ts            template, element, dataset types; TEMPLATE_VERSION

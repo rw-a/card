@@ -18,6 +18,7 @@ import {
   waitForElement,
   selectOption,
   setChecked,
+  expectCardSize,
 } from './helpers';
 
 test.describe('Designer – canvas', () => {
@@ -27,7 +28,7 @@ test.describe('Designer – canvas', () => {
     const texts = await canvasTexts(page);
     expect(texts).toEqual(['SUMMER CAMP 2026', 'Priya Raman', 'ACCOMMODATION', 'Cabin 7', 'Otters']);
     await expect(page.locator('[data-testid="layer"]')).toHaveCount(7);
-    await expect(page.locator('.topbar')).toContainText('100 × 140 mm');
+    await expectCardSize(page, 100, 140);
   });
 
   test('without data the canvas shows field placeholders', async ({ page }) => {
@@ -526,11 +527,11 @@ test.describe('Designer – inspector', () => {
     await expect(page.locator('.side.left [data-field="Preset"]')).toBeVisible();
     await expect(page.locator('.side.right [data-field="Preset"]')).toHaveCount(0);
     await selectOption(page, field(page, 'Preset'), { label: 'A7 (74 × 105)' });
-    await expect(page.locator('.topbar')).toContainText('74 × 105 mm');
+    await expectCardSize(page, 74, 105);
     await setField(page, 'Width', 90);
     await expect(field(page, 'Preset')).toHaveValue('custom');
     await page.getByRole('button', { name: 'Swap orientation' }).click();
-    await expect(page.locator('.topbar')).toContainText('105 × 90 mm');
+    await expectCardSize(page, 105, 90);
     const t = await getTemplate(page);
     expect([t.card.width, t.card.height]).toEqual([105, 90]);
     await field(page, 'Background Colour').fill('#ff0000');
@@ -569,7 +570,7 @@ test.describe('Designer – inspector', () => {
       mimeType: 'application/json',
       buffer: Buffer.from(JSON.stringify(t)),
     });
-    await expect(page.getByTestId('topbar-info')).toHaveText('86 × 140 mm');
+    await expectCardSize(page, 86, 140);
     expect(await getTemplate(page)).toEqual(t);
     await expect(page.locator('[data-testid="layer"]')).toHaveCount(2);
   });
