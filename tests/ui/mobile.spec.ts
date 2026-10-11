@@ -137,3 +137,28 @@ test('small screens still fit with the wider font CI machines use, and the sheet
   await expect(back.locator('.back-label-short')).toBeVisible();
   await expect(back.locator('.back-label-long')).toBeHidden();
 });
+
+test('opening "Preview with" never widens the page, even with long names in the menu', async ({ page }) => {
+  await loadSample(page); // has "Maximilian Alexander von Habsburg-Lothringen", wider than a phone
+  const pageWidth = () => page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, viewport: innerWidth }));
+  for (const width of [375, 320]) {
+    await page.setViewportSize({ width, height: 667 });
+    await page.getByTestId('preview-source').getByRole('combobox').tap();
+    const menu = page.getByRole('listbox').filter({ has: page.getByRole('option', { name: /Habsburg-Lothringen/ }) });
+    await expect(menu).toBeVisible();
+    expect(await pageWidth(), `${width}px, menu open`).toEqual({ scroll: width, viewport: width });
+    const box = (await menu.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(width);
+    // The long name is truncated on one line (full text on hover) rather than wrapping
+    const longText = menu.getByRole('option', { name: /Habsburg-Lothringen/ }).locator('[data-part="item-text"]');
+    await expect(longText).toHaveCSS('text-overflow', 'ellipsis');
+    expect(await longText.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
+    const lineHeight = await menu.getByRole('option', { name: 'Shortest values' }).evaluate((el) => el.getBoundingClientRect().height);
+    expect((await menu.getByRole('option', { name: /Habsburg-Lothringen/ }).boundingBox())!.height).toBeCloseTo(lineHeight, 0);
+    await expect(longText).toHaveAttribute('title', /Maximilian Alexander von Habsburg-Lothringen/);
+    await page.keyboard.press('Escape');
+    await expect(menu).toBeHidden();
+    expect(await pageWidth(), `${width}px, menu closed again`).toEqual({ scroll: width, viewport: width });
+  }
+});

@@ -770,6 +770,27 @@ input.color {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
 }
+/*
+ * Dropdown menus never grow wider than the screen. Ark sizes the menu to its widest
+ * option (an inline `min-width: max-content`), and a long one – a full name under
+ * "Preview with" – would otherwise widen the page, which phones answer by zooming
+ * out. Long options are truncated with an ellipsis (the full text shows on hover).
+ * The menu stays mounted when closed, so this applies while it is hidden too.
+ */
+[data-scope='select'][data-part='positioner'] {
+  min-width: 0 !important;
+  max-width: calc(100vw - 16px);
+}
+[data-scope='select'][data-part='content'] {
+  max-width: calc(100vw - 16px);
+}
+[data-scope='select'][data-part='item-text'] {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .add-grid [data-scope='select'][data-part='root'] {
   grid-column: 1 / -1;
 }

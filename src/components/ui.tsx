@@ -201,7 +201,7 @@ export function Select<T extends string>(props: {
             <For each={collection().items}>
               {(item) => (
                 <ParkSelect.Item item={item}>
-                  <ParkSelect.ItemText>{item.label}</ParkSelect.ItemText>
+                  <ParkSelect.ItemText title={item.label}>{item.label}</ParkSelect.ItemText>
                   <ParkSelect.ItemIndicator />
                 </ParkSelect.Item>
               )}
