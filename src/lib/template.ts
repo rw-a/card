@@ -24,13 +24,13 @@ export const PAGE_PRESETS: Record<Exclude<PagePreset, 'custom'>, { width: number
 };
 
 export const CARD_PRESETS: { label: string; width: number; height: number }[] = [
-  { label: 'A6 holder insert (100 × 140)', width: 100, height: 140 },
-  { label: 'A6 exact (105 × 148)', width: 105, height: 148 },
+  { label: 'A6 Holder Insert (100 × 140)', width: 100, height: 140 },
+  { label: 'A6 Exact (105 × 148)', width: 105, height: 148 },
   { label: 'A7 (74 × 105)', width: 74, height: 105 },
-  { label: 'Credit card (85.6 × 54)', width: 85.6, height: 54 },
+  { label: 'Credit Card (85.6 × 54)', width: 85.6, height: 54 },
   { label: 'Badge 4×3" (102 × 76)', width: 101.6, height: 76.2 },
   { label: 'Badge 3×4" (76 × 102)', width: 76.2, height: 101.6 },
-  { label: 'Name tag (90 × 60)', width: 90, height: 60 },
+  { label: 'Name Tag (90 × 60)', width: 90, height: 60 },
 ];
 
 export const FONT_FAMILIES: { label: string; value: string }[] = [
