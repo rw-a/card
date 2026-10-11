@@ -22,6 +22,12 @@ const V_ALIGN: Record<TextElement['vAlign'], string> = {
 
 /** How far (in mm) text may poke past the card edge before we call it clipped – absorbs sub-pixel rounding. */
 const CLIP_TOLERANCE_MM = 0.3;
+/**
+ * A text line's box includes the font's built-in space above and below the letters
+ * (about a fifth of the font size), so a line may stick out of its box by this much,
+ * as a fraction of the font size, before any letter is actually cut off.
+ */
+const LINE_SPACE_EM = 0.2;
 
 /**
  * Renders one text element. When `shrinkToFit` is on, the font size is reduced
@@ -50,6 +56,45 @@ export default function TextBox(props: Props) {
    */
   function measureOverflows(availH: number): boolean {
     return inner.scrollHeight > availH + 1 || inner.scrollWidth > inner.clientWidth;
+  }
+
+  /**
+   * True when rendered text is actually cut off by the box's own edge. Fitting aims
+   * for the area inside the padding, but text that only runs into the padding – or
+   * whose line boxes stick out only by the font's built-in space around the letters –
+   * is still fully visible, so it is not reported. Measured with the box's rotation
+   * switched off for a moment, so the comparison happens in its own coordinates.
+   */
+  function measureCut(): boolean {
+    const card = outer.closest('.card') as HTMLElement | null;
+    if (!card || !text()) return false;
+    const cr = card.getBoundingClientRect();
+    if (cr.width === 0) return false;
+    const scale = cr.width / (props.cardW * PX_PER_MM);
+    const tol = CLIP_TOLERANCE_MM * PX_PER_MM * scale;
+    const tolY = tol + LINE_SPACE_EM * parseFloat(getComputedStyle(inner).fontSize) * scale;
+    const transform = outer.style.transform;
+    outer.style.transform = 'none';
+    try {
+      const box = outer.getBoundingClientRect();
+      const border = props.el.borderWidth * PX_PER_MM * scale; // text is clipped at the inside of the border
+      const range = document.createRange();
+      range.selectNodeContents(inner);
+      for (const r of range.getClientRects()) {
+        if (r.width === 0 || r.height === 0) continue;
+        if (
+          r.left < box.left + border - tol ||
+          r.right > box.right - border + tol ||
+          r.top < box.top + border - tolY ||
+          r.bottom > box.bottom - border + tolY
+        ) {
+          return true;
+        }
+      }
+      return false;
+    } finally {
+      outer.style.transform = transform;
+    }
   }
 
   /**
@@ -126,7 +171,8 @@ export default function TextBox(props: Props) {
         inner.style.overflowWrap = 'anywhere';
       }
     }
-    const next: FitStatus = { overflow: measureOverflows(availH), clipped: measureClipped() };
+    // Only text that does not fit inside the padding can be cut off, so measure further just then.
+    const next: FitStatus = { overflow: measureOverflows(availH) && measureCut(), clipped: measureClipped() };
     setFontSize(size);
     setBreakWords(needsBreak);
     const prev = status();

@@ -138,15 +138,48 @@ test.describe('Fit check – overflow detection', () => {
   test('flags text that does not fit its box even at the minimum size', async ({ page }) => {
     await loadSample(page);
     await selectLayer(page, 'Name');
-    await setField(page, 'H', 6); // far too short for 30pt, min 12pt
+    await setField(page, 'H', 6); // far too short for the longest name on two lines at the 12pt minimum
     await expect(previewStatus(page, 'longest')).toHaveText(/Overflows: Name/);
-    await expect(previewStatus(page, 'median')).toHaveText(/Overflows: Name/);
+    // The median name fits on one line: it runs into the padding but nothing is cut off
+    await expect(previewStatus(page, 'median')).toHaveText(/Everything fits/);
     await expect(preview(page, 'longest')).toHaveClass(/has-overflow/);
+    await selectOption(page, page.getByTestId('preview-source').locator('select'), 'longest');
     await expect(page.getByTestId('selection-label')).toContainText('text overflows its box');
     await expect(layer(page, 'Name').getByTestId('layer-problem')).toBeVisible();
     const id = await elementId(page, 'Name');
     await expect(preview(page, 'longest').locator(`.el[data-id="${id}"]`)).toHaveAttribute('data-overflow', 'true');
     await expect(canvasCard(page).locator(`.el[data-id="${id}"]`)).toHaveAttribute('data-overflow', 'true');
+  });
+
+  test('text that only runs into the padding, with no letter cut off, is not reported', async ({ page }) => {
+    // A small, rotated, faint copy of the name: the longest name needs two lines at its 8pt minimum,
+    // which fill the box's padding but stay inside the box.
+    await loadSample(page);
+    await page.getByRole('button', { name: 'Add text' }).click();
+    await page.locator('#content-editor').fill('{{Name}}');
+    for (const [label, value] of [
+      ['X', 29],
+      ['Y', 68],
+      ['W', 42],
+      ['H', 6],
+      ['Rotation', 12],
+      ['Opacity', 35],
+      ['Size', 18],
+      ['Min Shrinked Size', 8],
+    ] as const) {
+      await setField(page, label, value);
+    }
+    for (const [field, value] of [
+      ['Align', 'center'],
+      ['Vertical', 'middle'],
+    ]) {
+      await page.locator(`[data-field="${field}"] input[value="${value}"]`).locator('..').click();
+    }
+    await waitForElement(page, 'Text', (el) => el.kind === 'text' && el.align === 'center' && el.vAlign === 'middle');
+    for (const v of VARIANTS) await expect(previewStatus(page, v)).toHaveText(/Everything fits/);
+    // …while a box that really cuts the text off is still caught
+    await setField(page, 'H', 4);
+    await expect(previewStatus(page, 'longest')).toHaveText(/Overflows: Text/);
   });
 
   test('lowering the minimum font size can make it fit again', async ({ page }) => {
@@ -293,6 +326,7 @@ test.describe('Fit check – text cut off by the card edge (regression)', () => 
     await setField(page, 'H', 6);
     await setField(page, 'X', 60);
     await expect(previewStatus(page, 'longest')).toHaveText(/Overflows: Name/);
+    await selectOption(page, page.getByTestId('preview-source').locator('select'), 'longest');
     await expect(page.getByTestId('selection-label')).toContainText('overflows its box and is cut off by the card edge');
   });
 });
