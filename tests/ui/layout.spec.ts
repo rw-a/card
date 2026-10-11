@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { goTo, loadSample, openApp, setField } from './helpers';
+import { goTo, loadSample, openApp, selectOption, setField, setSides } from './helpers';
 
 /** Horizontal centre of the step tabs minus the centre of the window (px). */
 async function tabsOffCentre(page: Page): Promise<number> {
@@ -163,4 +163,72 @@ test('number fields show their steppers without hovering (Chrome hides them by d
   await page.addStyleTag({ content: '.num::-webkit-inner-spin-button { opacity: 0 !important; }' });
   const hidden = await input.screenshot();
   expect(shown.equals(hidden)).toBe(false);
+});
+
+test.describe('Design toolbar with different sides', () => {
+  /** Positions (px) of the toolbar parts, relative to the toolbar. */
+  async function toolbarLayout(page: Page) {
+    return page.evaluate(() => {
+      const tb = document.querySelector('.designer-toolbar') as HTMLElement;
+      const t = tb.getBoundingClientRect();
+      const box = (sel: string) => tb.querySelector(sel)!.getBoundingClientRect();
+      const sides = box('.side-switcher');
+      const left = box('.toolbar-left');
+      const right = box('.toolbar-right');
+      const value = tb.querySelector('[data-testid="preview-source"] [data-part="value-text"]') as HTMLElement;
+      return {
+        offCentre: sides.left + sides.width / 2 - (t.left + t.width / 2),
+        sameLine: Math.abs(sides.top + sides.height / 2 - (left.top + left.height / 2)) < 4 && Math.abs(sides.top - right.top) < 8,
+        clearLeft: sides.left - left.right,
+        clearRight: right.left - sides.right,
+        below: sides.top >= Math.max(left.bottom, right.bottom) - 1,
+        truncated: value.scrollWidth > value.clientWidth,
+        overflow: document.documentElement.scrollWidth > innerWidth,
+      };
+    });
+  }
+
+  test('Front / Back sits centred on the toolbar line when there is room', async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await loadSample(page);
+    await setSides(page, 'different');
+    const l = await toolbarLayout(page);
+    expect(l.sameLine).toBe(true);
+    expect(Math.abs(l.offCentre)).toBeLessThan(2);
+    expect(l.truncated).toBe(false);
+    expect(l.overflow).toBe(false);
+  });
+
+  test('when space is tight it stays inline, as central as it can be, and "Preview with" truncates', async ({ page }) => {
+    await loadSample(page);
+    await setSides(page, 'different');
+    // 1440 px: inline, but the right-hand controls are wider than half the space
+    let l = await toolbarLayout(page);
+    expect(l.sameLine).toBe(true);
+    expect(l.clearLeft).toBeGreaterThanOrEqual(8);
+    expect(l.clearRight).toBeGreaterThanOrEqual(8);
+    expect(Math.abs(l.offCentre)).toBeLessThan(60);
+    // A long selected name truncates instead of pushing the switcher off the line
+    await page.setViewportSize({ width: 1920, height: 900 });
+    await selectOption(page, page.getByTestId('preview-source').locator('select'), 'row:3'); // Maximilian Alexander von Habsburg-Lothringen
+    l = await toolbarLayout(page);
+    expect(l.sameLine).toBe(true);
+    expect(l.truncated).toBe(true);
+    expect(Math.abs(l.offCentre)).toBeLessThan(2);
+    expect(l.clearLeft).toBeGreaterThanOrEqual(8);
+  });
+
+  test('when it does not fit it gets a centred line of its own, and only exists for different sides', async ({ page }) => {
+    await page.setViewportSize({ width: 1100, height: 900 });
+    await loadSample(page);
+    await expect(page.getByTestId('side-switcher')).toHaveCount(0);
+    await setSides(page, 'different');
+    const l = await toolbarLayout(page);
+    expect(l.below).toBe(true);
+    expect(Math.abs(l.offCentre)).toBeLessThan(2);
+    expect(l.overflow).toBe(false);
+    // Widening the window moves it back onto the line
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await expect.poll(async () => (await toolbarLayout(page)).sameLine).toBe(true);
+  });
 });

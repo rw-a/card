@@ -162,3 +162,28 @@ test('opening "Preview with" never widens the page, even with long names in the 
     expect(await pageWidth(), `${width}px, menu closed again`).toEqual({ scroll: width, viewport: width });
   }
 });
+
+test('on phones Front / Back goes bottom-left with zoom bottom-right on the same line', async ({ page }) => {
+  await loadSample(page);
+  await setSides(page, 'different');
+  for (const width of [375, 320]) {
+    await page.setViewportSize({ width, height: 667 });
+    const l = await page.evaluate(() => {
+      const tb = (document.querySelector('.designer-toolbar') as HTMLElement).getBoundingClientRect();
+      const box = (sel: string) => document.querySelector(`.designer-toolbar ${sel}`)!.getBoundingClientRect();
+      const sides = box('.side-switcher');
+      const zoom = box('.zoom-controls');
+      const view = box('.toolbar-view');
+      return {
+        leftInset: sides.left - tb.left,
+        rightInset: tb.right - zoom.right,
+        sameLine: Math.abs(sides.top + sides.height / 2 - (zoom.top + zoom.height / 2)) < 4,
+        lastLine: sides.top >= view.bottom - 1 && Math.abs(sides.bottom - (tb.bottom - 8)) < 4,
+      };
+    });
+    expect(l, `${width}px`).toMatchObject({ sameLine: true, lastLine: true });
+    expect(l.leftInset, `${width}px`).toBeLessThanOrEqual(12);
+    expect(l.rightInset, `${width}px`).toBeLessThanOrEqual(12);
+    await expectNoOverflow(page, `${width}px design toolbar`);
+  }
+});

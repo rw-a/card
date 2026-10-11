@@ -30,6 +30,11 @@ import SideSwitcher from './SideSwitcher';
 import { Select, IconButton, Button, Toggle, Splitter } from './ui';
 
 type HandleDir = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
+/** Phones get their own toolbar arrangement (see styles.css). */
+const PHONE_QUERY = '(max-width: 600px)';
+/** How narrow the "Preview with" menu may get (it truncates its text) to make room for Front / Back. */
+const PREVIEW_MENU_MIN_PX = 110;
+
 const HANDLES: HandleDir[] = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
 
 interface DragState {
@@ -71,6 +76,7 @@ export default function Designer() {
   const [canvasSize, setCanvasSize] = createSignal({ width: 0, height: 0 });
   let canvasArea!: HTMLDivElement;
   let canvasCaption!: HTMLDivElement;
+  let toolbar!: HTMLDivElement;
   let drag: DragState | null = null;
   let pan: PanState | null = null;
 
@@ -105,6 +111,53 @@ export default function Designer() {
       document.body.classList.remove('dragging');
     });
   });
+
+  /**
+   * Whether the Front / Back switcher fits on the toolbar line between the other
+   * controls (the "Preview with" menu may shrink and truncate to make room), and
+   * where: exactly centred when both outer columns can be equally wide, otherwise as
+   * close to the centre as the wider side allows. Measured rather than set by
+   * breakpoints so it holds for any font.
+   */
+  const [sidesInline, setSidesInline] = createSignal(false);
+  function measureToolbar() {
+    const sides = toolbar?.querySelector<HTMLElement>('.side-switcher');
+    if (!sides || window.matchMedia(PHONE_QUERY).matches) {
+      setSidesInline(false);
+      return;
+    }
+    const left = toolbar.querySelector<HTMLElement>('.toolbar-left')!;
+    const right = toolbar.querySelector<HTMLElement>('.toolbar-right')!;
+    const menu = left.querySelector<HTMLElement>('[data-testid="preview-source"]')!;
+    const style = getComputedStyle(toolbar);
+    const available = toolbar.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+    const gap = parseFloat(style.columnGap) || 0;
+    // Everything on the left keeps its size except the menu, which can shrink to PREVIEW_MENU_MIN_PX.
+    const leftMin = left.getBoundingClientRect().width - menu.getBoundingClientRect().width + PREVIEW_MENU_MIN_PX;
+    const rightWidth = right.scrollWidth;
+    const outer = available - sides.getBoundingClientRect().width - 2 * gap; // for both outer columns together
+    const fits = outer >= leftMin + rightWidth;
+    setSidesInline(fits);
+    if (!fits) return;
+    // Equal halves centre the switcher exactly; if one side needs more, it gets just that.
+    const half = outer / 2;
+    const leftColumn = rightWidth > half ? outer - rightWidth : Math.max(leftMin, half);
+    toolbar.style.setProperty('--toolbar-left-column', `${Math.floor(leftColumn)}px`);
+  }
+  onMount(() => {
+    const ro = new ResizeObserver(() => measureToolbar());
+    ro.observe(toolbar);
+    ro.observe(toolbar.querySelector('.toolbar-right')!); // e.g. the zoom level's width changes
+    onCleanup(() => ro.disconnect());
+    void document.fonts?.ready.then(measureToolbar);
+  });
+  // The switcher appears and disappears with the sides mode.
+  createEffect(
+    on(
+      () => template.sidedness,
+      () => queueMicrotask(measureToolbar),
+    ),
+  );
 
   // Fit the card into view initially and whenever its size changes.
   createEffect(() => {
@@ -420,8 +473,12 @@ export default function Designer() {
       </aside>
 
       <main class="center">
-        <div class="toolbar">
-          <div class="row gap">
+        <div
+          ref={toolbar}
+          class="toolbar designer-toolbar"
+          classList={{ 'has-sides': template.sidedness === 'different', 'sides-inline': sidesInline() }}
+        >
+          <div class="row gap toolbar-left">
             <IconButton variant="outline" size="xs" class="btn icon" title="Undo (Ctrl+Z)" disabled={!canUndo()} onClick={undo}>
               <Undo2 aria-hidden="true" />
             </IconButton>
@@ -436,10 +493,13 @@ export default function Designer() {
               </span>
             </label>
           </div>
-          <div class="row gap">
-            <Toggle checked={snap()} onChange={setSnap} label="Snap" title="Snap positions to whole millimetres (hold Alt to override)" />
-            <Toggle checked={grid()} onChange={setGrid} label="Grid" />
-            <Toggle checked={panMode()} onChange={setPanMode} label="Drag to Pan" title="Drag the canvas to pan" />
+          <SideSwitcher />
+          <div class="row gap toolbar-right">
+            <div class="row gap toolbar-view">
+              <Toggle checked={snap()} onChange={setSnap} label="Snap" title="Snap positions to whole millimetres (hold Alt to override)" />
+              <Toggle checked={grid()} onChange={setGrid} label="Grid" />
+              <Toggle checked={panMode()} onChange={setPanMode} label="Drag to Pan" title="Drag the canvas to pan" />
+            </div>
             <span class="sep" />
             <span class="zoom-controls" role="group" aria-label="Zoom">
               <IconButton
@@ -466,8 +526,6 @@ export default function Designer() {
             </span>
           </div>
         </div>
-
-        <SideSwitcher />
 
         <Splitter.Root
           class="editor-split"
