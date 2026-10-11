@@ -189,7 +189,7 @@ test.describe('Design toolbar with different sides', () => {
   }
 
   test('Front / Back sits centred on the toolbar line when there is room', async ({ page }) => {
-    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.setViewportSize({ width: 1920, height: 900 });
     await loadSample(page);
     await setSides(page, 'different');
     const l = await toolbarLayout(page);
@@ -200,14 +200,38 @@ test.describe('Design toolbar with different sides', () => {
   });
 
   test('when space is tight it stays inline, as central as it can be, and "Preview with" truncates', async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 900 });
     await loadSample(page);
     await setSides(page, 'different');
-    // 1440 px: inline, but the right-hand controls are wider than half the space
+    // The narrowest window where Front / Back still fits on the line depends on the font, so measure
+    // it: the controls' widths, with "Preview with" at its smallest (110 px, PREVIEW_MENU_MIN_PX).
+    const tightest = await page.evaluate(() => {
+      const tb = document.querySelector('.designer-toolbar') as HTMLElement;
+      const style = getComputedStyle(tb);
+      const width = (sel: string) => tb.querySelector(sel)!.getBoundingClientRect().width;
+      const leftMin = width('.toolbar-left') - width('[data-testid="preview-source"]') + 110;
+      const right = (tb.querySelector('.toolbar-right') as HTMLElement).scrollWidth;
+      const content = leftMin + right + width('.side-switcher') + 2 * parseFloat(style.columnGap);
+      const box = tb.getBoundingClientRect();
+      return Math.ceil(content + parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) + box.left + (innerWidth - box.right));
+    });
+    await page.setViewportSize({ width: tightest + 4, height: 900 });
+    // The toolbar re-measures after a resize (before the next paint); wait for that
+    await expect
+      .poll(async () => {
+        const settled = await toolbarLayout(page);
+        return Math.min(settled.clearLeft, settled.clearRight);
+      })
+      .toBeGreaterThanOrEqual(8);
     let l = await toolbarLayout(page);
     expect(l.sameLine).toBe(true);
     expect(l.clearLeft).toBeGreaterThanOrEqual(8);
     expect(l.clearRight).toBeGreaterThanOrEqual(8);
-    expect(Math.abs(l.offCentre)).toBeLessThan(60);
+    expect(l.truncated).toBe(true);
+    // As central as it can be: exactly centred, or right up against the controls on its left
+    expect(Math.abs(l.offCentre) < 2 || l.clearLeft <= 16).toBe(true);
+    await page.setViewportSize({ width: tightest - 20, height: 900 });
+    await expect.poll(async () => (await toolbarLayout(page)).below).toBe(true); // any narrower and it moves down
     // A long selected name truncates instead of pushing the switcher off the line
     await page.setViewportSize({ width: 1920, height: 900 });
     await selectOption(page, page.getByTestId('preview-source').locator('select'), 'row:3'); // Maximilian Alexander von Habsburg-Lothringen

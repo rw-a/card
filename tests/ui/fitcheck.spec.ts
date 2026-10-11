@@ -186,9 +186,11 @@ test.describe('Fit check – overflow detection', () => {
   test('lowering the minimum font size can make it fit again', async ({ page }) => {
     await loadSample(page);
     await selectLayer(page, 'Name');
-    await setLayerField(page, 'Height', 8); // two lines at the 12pt minimum no longer fit
+    // Far too short for two lines at the 12pt minimum, whatever the font (a box only slightly too
+    // short is font-dependent: line heights differ between fonts)
+    await setLayerField(page, 'Height', 6);
     await expect(previewStatus(page, 'longest')).toHaveText(/Overflows: Name/);
-    await setField(page, 'Min Shrinked Size', 5); // one line at ~9pt does
+    await setField(page, 'Min Shrinked Size', 5); // a smaller minimum lets it fit
     await expect(previewStatus(page, 'longest')).toHaveText(/Everything fits/);
   });
 

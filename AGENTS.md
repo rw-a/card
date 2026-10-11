@@ -37,6 +37,7 @@ npm run test:ui        # browser tests only
 npm run test:headed
 npm run test:report
 npm run screenshots    # regenerate docs/screenshots/ for README.md (not part of npm test)
+CI_FONTS=1 npm test    # render with DejaVu Sans, the CI runners' default font (Linux, fontconfig)
 ```
 
 Before finishing a change, run `npm run typecheck`, `npm run lint`, `npm run format:check` and
@@ -211,6 +212,11 @@ Dropdown menus are capped to the viewport width and truncate long options.
 - Tests run against the production build served by `vite preview` on port 4173. Two
   `playwright test` runs at the same time on one machine conflict (shared port and `dist/`).
 - The 50,000-row persistence test is slow and can time out under heavy parallel load.
+- **Fonts differ between machines.** CI (Ubuntu) renders with DejaVu Sans, which is wider and has
+  different line metrics than most desktop fonts, so tests that sit near a threshold pass locally and
+  fail on CI. Write tests that measure what they depend on (e.g. the narrowest width at which
+  something still fits) or use values well clear of the boundary, and check with
+  `CI_FONTS=1 npm test`, which points Chromium at `tests/ci-fonts.conf`.
 - Debug hook in the browser: `cardMaker.getTemplate()`, `getEditor()`, `getDataset()`,
   `flushPersist()`, `storage`.
 

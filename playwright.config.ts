@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from '@playwright/test';
 
 const PORT = 4173;
@@ -26,6 +27,8 @@ export default defineConfig({
     viewport: { width: 1440, height: 900 },
     launchOptions: {
       executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || undefined,
+      // CI_FONTS=1: render with DejaVu Sans like the Ubuntu CI runners (see tests/ci-fonts.conf).
+      env: process.env.CI_FONTS ? { ...process.env, FONTCONFIG_FILE: fileURLToPath(new URL('./tests/ci-fonts.conf', import.meta.url)) } : undefined,
     },
   },
   projects: [
