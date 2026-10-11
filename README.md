@@ -25,7 +25,8 @@ and never uploaded.
 
 ## Key features
 
-- **Cards from a spreadsheet** — load a CSV file (or paste one) and place any column on the card.
+- **Cards from a spreadsheet** — save your spreadsheet as a CSV file (or copy and paste the cells)
+  and place any column on the card.
 - **Visual designer** — text, shapes and pictures that you drag, resize and style on a card shown
   at its real proportions, with undo, layers, snapping and keyboard shortcuts.
 - **Fit check** — previews built from the shortest, median and longest values in your data show
@@ -42,8 +43,9 @@ and never uploaded.
 
 ## Getting started
 
-1. **Data** — choose your CSV file, or paste the data. The first row must contain the column
-   names. To try Card Maker first, choose **Load sample data**.
+1. **Data** — choose your CSV file, or paste cells copied from your spreadsheet (see
+   [Preparing your data](#preparing-your-data)). To try Card Maker first, choose
+   **Load sample data**.
 2. **Design** — edit the starter card: click an element to change it, drag it to move it, and add
    text, shapes or pictures. Insert a column into text with `{{Column name}}`.
 3. **Print** — choose the paper and settings, check the preview, then choose
@@ -51,13 +53,37 @@ and never uploaded.
 
 ## Preparing your data
 
+Card Maker reads a **CSV file**: a spreadsheet saved as plain text, one row per line with the values
+separated by commas. Excel, Google Sheets and most other spreadsheet programs can save one.
+
+Set out the spreadsheet with the column names in the first row and one person per row. Each column
+becomes a field you can place on the card; each row becomes one card.
+
+| Name         | Accommodation | Group  |
+| ------------ | ------------- | ------ |
+| Ada Lovelace | Cabin 3       | Otters |
+| Sam Hill     | Tent 12       | Bears  |
+
+### Saving a spreadsheet as CSV
+
+- **Excel** — choose _File → Save As_ (or _Save a Copy_), set the file type to _CSV UTF-8 (Comma
+  delimited) (.csv)_, and save. Only the sheet that is open is saved. Excel may warn that some
+  features will be lost; that is expected.
+- **Google Sheets** — choose _File → Download → Comma-separated values (.csv)_. Only the sheet that
+  is open is downloaded.
+- **Numbers** — choose _File → Export To → CSV_.
+- **LibreOffice Calc** — choose _File → Save As_ and set the file type to _Text CSV (.csv)_.
+
+Spreadsheet files such as `.xlsx` cannot be opened directly; save them as CSV first. The Data tab
+also explains this under **How do I make a CSV file?**
+
+**No file needed:** select the cells in your spreadsheet, including the column names, copy them,
+and choose **Paste text** on the Data tab.
+
 ![The Data tab showing the loaded rows and column statistics](docs/screenshots/data.png)
 
-- Put one person per row; the column names become the fields you can place on the card.
-- Comma-, semicolon- and tab-separated files all work. In Excel use _File → Save As → CSV UTF-8_;
-  in Google Sheets use _File → Download → Comma-separated values_.
-- Empty cells are fine. The Data tab shows each column's shortest, median and longest value, which
-  helps spot entries that may not fit.
+Empty cells are fine. The Data tab shows each column's shortest, median and longest value, which
+helps spot entries that may not fit.
 
 ## Designing a card
 

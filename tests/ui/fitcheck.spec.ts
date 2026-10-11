@@ -336,16 +336,16 @@ test('"Which values are being used?" looks and works like a spoiler-style disclo
   await loadSample(page);
   const trigger = page.getByRole('button', { name: 'Which values are being used?' });
   await expect(trigger).toHaveAttribute('aria-expanded', 'false');
-  await expect(trigger.locator('.preview-details-indicator svg')).toBeVisible();
+  await expect(trigger.locator('.disclosure-indicator svg')).toBeVisible();
   // Not a button-looking box: no border or fill, chevron leading the text
   await expect(trigger).toHaveCSS('border-top-width', '0px');
   await expect(trigger).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
-  const chevron = (await trigger.locator('.preview-details-indicator').boundingBox())!;
+  const chevron = (await trigger.locator('.disclosure-indicator').boundingBox())!;
   const box = (await trigger.boundingBox())!;
   expect(chevron.x - box.x).toBeLessThan(4);
   await trigger.click();
   await expect(trigger).toHaveAttribute('aria-expanded', 'true');
-  await expect(trigger.locator('.preview-details-indicator')).toHaveCSS('rotate', '90deg');
+  await expect(trigger.locator('.disclosure-indicator')).toHaveCSS('rotate', '90deg');
   await expect(page.locator('.preview-details table')).toBeVisible();
 });
 

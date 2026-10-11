@@ -1,7 +1,7 @@
 import { createListCollection } from '@ark-ui/solid/select';
 import { For, Show, createContext, createMemo, splitProps, useContext, type JSX } from 'solid-js';
 import { Portal } from 'solid-js/web';
-import { Trash2, Upload } from 'lucide-solid';
+import { ChevronRight, Trash2, Upload } from 'lucide-solid';
 import { Input } from './park/input';
 import { Button } from './park/button';
 import { IconButton } from './park/icon-button';
@@ -13,6 +13,7 @@ import * as ParkSwitch from './park/switch';
 import * as SegmentGroup from './park/segment-group';
 import * as Accordion from './park/accordion';
 import * as Alert from './park/alert';
+import * as ParkCollapsible from './park/collapsible';
 
 export { Button } from './park/button';
 export { IconButton } from './park/icon-button';
@@ -23,7 +24,6 @@ export { Heading } from './park/heading';
 export * as Table from './park/table';
 export * as Tabs from './park/tabs';
 export * as Splitter from './park/splitter';
-export * as Collapsible from './park/collapsible';
 export * as SurfaceCard from './park/card';
 
 const FieldLabel = createContext<string>();
@@ -238,6 +238,36 @@ export function PictureControl(props: { url: string; what: string; onPick: () =>
         </IconButton>
       </Show>
     </div>
+  );
+}
+
+/**
+ * A spoiler-style disclosure: plain text led by a chevron that turns down when open.
+ * Uncontrolled unless `open` is given.
+ */
+export function Disclosure(props: {
+  label: string;
+  children: JSX.Element;
+  class?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  'data-testid'?: string;
+}) {
+  return (
+    <ParkCollapsible.Root
+      class={`disclosure ${props.class ?? ''}`}
+      open={props.open}
+      onOpenChange={(d) => props.onOpenChange?.(d.open)}
+      data-testid={props['data-testid']}
+    >
+      <ParkCollapsible.Trigger class="disclosure-trigger">
+        <ParkCollapsible.Indicator class="disclosure-indicator">
+          <ChevronRight aria-hidden="true" />
+        </ParkCollapsible.Indicator>
+        {props.label}
+      </ParkCollapsible.Trigger>
+      <ParkCollapsible.Content>{props.children}</ParkCollapsible.Content>
+    </ParkCollapsible.Root>
   );
 }
 

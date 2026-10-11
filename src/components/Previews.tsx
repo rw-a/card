@@ -1,4 +1,4 @@
-import { Check, ChevronDown, ChevronRight, TriangleAlert } from 'lucide-solid';
+import { Check, ChevronDown, TriangleAlert } from 'lucide-solid';
 import { For, Show, createEffect, createMemo, createSignal, on, onCleanup, onMount } from 'solid-js';
 import { PX_PER_MM, elementLabel } from '../lib/template';
 import {
@@ -17,7 +17,7 @@ import {
 import { editingLabel } from '../lib/sides';
 import { fitProblem, type FitStatus, type Row, type SideId } from '../lib/types';
 import Card from './Card';
-import { Switch, Table, Collapsible, SurfaceCard, Heading } from './ui';
+import { Switch, Table, Disclosure, SurfaceCard, Heading } from './ui';
 
 interface Variant {
   key: 'shortest' | 'median' | 'longest';
@@ -131,46 +131,38 @@ export default function Previews(props: { open: boolean; onToggle: () => void })
           </div>
         </Show>
         <Show when={hasData() && activeStats().length > 0}>
-          <Collapsible.Root class="preview-details">
-            <Collapsible.Trigger class="preview-details-trigger">
-              <Collapsible.Indicator class="preview-details-indicator">
-                <ChevronRight aria-hidden="true" />
-              </Collapsible.Indicator>
-              Which values are being used?
-            </Collapsible.Trigger>
-            <Collapsible.Content>
-              <Table.Root class="table small stats">
-                <Table.Head>
-                  <Table.Row>
-                    <Table.Header>Field</Table.Header>
-                    <Table.Header>Shortest</Table.Header>
-                    <Table.Header>Median</Table.Header>
-                    <Table.Header>Longest</Table.Header>
-                  </Table.Row>
-                </Table.Head>
-                <Table.Body>
-                  <For each={activeStats()}>
-                    {(s) => (
-                      <Table.Row>
-                        <Table.Cell>
-                          <strong>{s.column}</strong>
-                        </Table.Cell>
-                        <Table.Cell>
-                          <span class="val">{s.shortest || <em class="muted">(empty)</em>}</span> <span class="len">{s.minLen}</span>
-                        </Table.Cell>
-                        <Table.Cell>
-                          <span class="val">{s.median || <em class="muted">(empty)</em>}</span> <span class="len">{s.medianLen}</span>
-                        </Table.Cell>
-                        <Table.Cell>
-                          <span class="val">{s.longest || <em class="muted">(empty)</em>}</span> <span class="len">{s.maxLen}</span>
-                        </Table.Cell>
-                      </Table.Row>
-                    )}
-                  </For>
-                </Table.Body>
-              </Table.Root>
-            </Collapsible.Content>
-          </Collapsible.Root>
+          <Disclosure class="preview-details" label="Which values are being used?">
+            <Table.Root class="table small stats">
+              <Table.Head>
+                <Table.Row>
+                  <Table.Header>Field</Table.Header>
+                  <Table.Header>Shortest</Table.Header>
+                  <Table.Header>Median</Table.Header>
+                  <Table.Header>Longest</Table.Header>
+                </Table.Row>
+              </Table.Head>
+              <Table.Body>
+                <For each={activeStats()}>
+                  {(s) => (
+                    <Table.Row>
+                      <Table.Cell>
+                        <strong>{s.column}</strong>
+                      </Table.Cell>
+                      <Table.Cell>
+                        <span class="val">{s.shortest || <em class="muted">(empty)</em>}</span> <span class="len">{s.minLen}</span>
+                      </Table.Cell>
+                      <Table.Cell>
+                        <span class="val">{s.median || <em class="muted">(empty)</em>}</span> <span class="len">{s.medianLen}</span>
+                      </Table.Cell>
+                      <Table.Cell>
+                        <span class="val">{s.longest || <em class="muted">(empty)</em>}</span> <span class="len">{s.maxLen}</span>
+                      </Table.Cell>
+                    </Table.Row>
+                  )}
+                </For>
+              </Table.Body>
+            </Table.Root>
+          </Disclosure>
         </Show>
       </div>
     </section>

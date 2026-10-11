@@ -165,3 +165,37 @@ test('the "start without data" tip is compact, aligned and its button is clearly
   await button.click();
   await expect(page.getByTestId('tab-design')).toHaveAttribute('aria-selected', 'true');
 });
+
+test.describe('Getting data in', () => {
+  test('"How do I make a CSV file?" explains Excel, Google Sheets, Numbers and pasting', async ({ page }) => {
+    await openApp(page);
+    await expect(page.locator('.dropzone')).toContainText('A CSV file is a spreadsheet saved as plain text');
+    const help = page.getByTestId('csv-help');
+    await expect(help.getByText(/Google Sheets/)).toBeHidden();
+    await page.getByRole('button', { name: 'How do I make a CSV file?' }).click();
+    await expect(help).toContainText('CSV UTF-8 (Comma delimited) (.csv)');
+    await expect(help).toContainText('File → Download → Comma-separated values (.csv)');
+    await expect(help).toContainText('File → Export To → CSV');
+    await expect(help).toContainText('copy them, and choose Paste text');
+  });
+
+  for (const [what, name, buffer] of [
+    ['an Excel file', 'roster.xlsx', Buffer.from('PK\x03\x04 binary workbook')],
+    ['a spreadsheet file renamed to .csv', 'roster.csv', Buffer.from('PK\x03\x04\x00\x00 binary workbook')],
+  ] as const) {
+    test(`${what} is turned away with instructions instead of loading as garbage`, async ({ page }) => {
+      await openApp(page);
+      await page.locator('input[type=file]').first().setInputFiles({ name, mimeType: 'application/octet-stream', buffer });
+      await expect(page.locator('.notice.warn')).toContainText(`“${name}” is a spreadsheet file, not a CSV file`);
+      await expect(page.getByTestId('csv-help')).toContainText('CSV UTF-8'); // the instructions open
+      expect(await page.evaluate(() => window.cardMaker.getDataset())).toBeNull();
+    });
+  }
+
+  test('cells copied from a spreadsheet can be pasted directly', async ({ page }) => {
+    await openApp(page);
+    await pasteCsv(page, 'Name\tCabin\tGroup\nAda Lovelace\tCabin 3\tOtters\nBo Diddley\tTent 2\tBears\n'); // what Excel and Sheets put on the clipboard
+    await expect(page.getByText(/pasted\.csv — 2 People, 3 Columns/)).toBeVisible();
+    expect((await page.evaluate(() => window.cardMaker.getDataset()))!.rows[1]).toEqual({ Name: 'Bo Diddley', Cabin: 'Tent 2', Group: 'Bears' });
+  });
+});

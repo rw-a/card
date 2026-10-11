@@ -4,18 +4,31 @@ import { SAMPLE_CSV, parseCsv, readFileAsText } from '../lib/csv';
 import { columnStats } from '../lib/stats';
 import { dataset, ignoreEmpty, setDataset, setIgnoreEmpty, setTab, usedColumns } from '../lib/store';
 import Brand from './Brand';
-import { Section, Switch, Button, Textarea, Notice, Badge, Table, Heading } from './ui';
+import { Section, Switch, Button, Textarea, Notice, Badge, Table, Heading, Disclosure } from './ui';
+
+/** Spreadsheet files that must be saved as CSV first (they are binary, not text). */
+const SPREADSHEET_FILE = /\.(xlsx|xlsm|xlsb|xls|ods|numbers)$/i;
 
 export default function DataPanel() {
   const [warnings, setWarnings] = createSignal<string[]>([]);
   const [dragOver, setDragOver] = createSignal(false);
   const [pasteOpen, setPasteOpen] = createSignal(false);
   const [pasteText, setPasteText] = createSignal('');
+  const [csvHelpOpen, setCsvHelpOpen] = createSignal(false);
   let fileInput!: HTMLInputElement;
 
+  /** A spreadsheet file instead of a CSV: say what to do, and show how. */
+  function rejectSpreadsheet(name: string) {
+    setWarnings([`“${name}” is a spreadsheet file, not a CSV file. Save it as CSV first, or copy the cells and use Paste text.`]);
+    setCsvHelpOpen(true);
+  }
+
   async function loadFile(file: File) {
+    if (SPREADSHEET_FILE.test(file.name)) return rejectSpreadsheet(file.name);
     try {
       const text = await readFileAsText(file);
+      // Text files never contain NUL characters; spreadsheet files (whatever their name) do.
+      if (text.includes('\u0000')) return rejectSpreadsheet(file.name);
       loadText(text, file.name);
     } catch (e) {
       setWarnings([`Could not read ${file.name}: ${(e as Error).message}`]);
@@ -81,8 +94,8 @@ export default function DataPanel() {
             Drop Your CSV Here
           </Heading>
           <p class="muted">
-            First row must be the column headers (e.g. <code>Name, Accommodation, Group</code>). Comma, semicolon and tab separated files all work.
-            Nothing is uploaded anywhere — everything stays in your browser.
+            A CSV file is a spreadsheet saved as plain text. Its first row holds the column names (e.g. <code>Name, Accommodation, Group</code>), and
+            each row after that becomes one card. Nothing is uploaded anywhere — everything stays in your browser.
           </p>
           <div class="row gap">
             <Button size="md" class="btn primary" onClick={() => fileInput.click()}>
@@ -95,6 +108,25 @@ export default function DataPanel() {
               Load sample data
             </Button>
           </div>
+          <Disclosure label="How do I make a CSV file?" class="csv-help" open={csvHelpOpen()} onOpenChange={setCsvHelpOpen} data-testid="csv-help">
+            <ul class="csv-help-steps">
+              <li>
+                <strong>Excel:</strong> choose <em>File → Save As</em> (or <em>Save a Copy</em>), set the file type to{' '}
+                <em>CSV UTF-8 (Comma delimited) (.csv)</em>, and save. Only the sheet that is open is saved.
+              </li>
+              <li>
+                <strong>Google Sheets:</strong> choose <em>File → Download → Comma-separated values (.csv)</em>. Only the sheet that is open is
+                downloaded.
+              </li>
+              <li>
+                <strong>Numbers:</strong> choose <em>File → Export To → CSV</em>.
+              </li>
+              <li>
+                <strong>Or skip the file:</strong> select the cells in your spreadsheet (including the column names), copy them, and choose{' '}
+                <em>Paste text</em>.
+              </li>
+            </ul>
+          </Disclosure>
           <Show when={pasteOpen()}>
             {/* Only keeps clicks inside the box from reaching the drop zone behind it; not an interaction of its own. */}
             {/* oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
