@@ -638,6 +638,9 @@ input.color { width: 36px; min-width: 36px; padding: 2px; cursor: pointer; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.stored-picture-name.unnamed {
+  color: var(--muted);
+}
 .stored-picture-size {
   flex: 0 0 auto;
   color: var(--muted);

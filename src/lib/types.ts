@@ -151,6 +151,13 @@ export interface PageSettings {
 export type AssetStore = Record<string, string>;
 
 /**
+ * The file name each stored picture was uploaded with, by asset id (shown under
+ * "Pictures Stored"). Optional per picture: pictures from older templates have none.
+ * When the same picture is uploaded again under another name, the first name is kept.
+ */
+export type AssetNames = Record<string, string>;
+
+/**
  * Schema history: 1 = one design, pictures inline as data URLs; 2 = one design,
  * pictures in `assets`; 3 = shared geometry plus front/back side designs.
  * Older versions are upgraded by `parseTemplate` (template-migrations.ts).
@@ -168,6 +175,7 @@ export interface Template {
   };
   page: PageSettings;
   assets: AssetStore;
+  assetNames: AssetNames;
 }
 
 /** Result of measuring a rendered text element. */

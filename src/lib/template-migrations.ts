@@ -1,6 +1,6 @@
-import type { AssetStore, CardGeometry, PageSettings, PrintMethod, SideDesign, Sidedness, Template, TemplateElement } from './types';
+import type { AssetNames, AssetStore, CardGeometry, PageSettings, PrintMethod, SideDesign, Sidedness, Template, TemplateElement } from './types';
 import { TEMPLATE_VERSION } from './types';
-import { defaultTemplate, internAllImages, pruneAssets, uid } from './template';
+import { cleanFileName, defaultTemplate, internAllImages, pruneAssets, uid } from './template';
 
 /**
  * Turning stored or imported JSON into a current (version 3) template.
@@ -101,6 +101,17 @@ function readAssets(raw: unknown): AssetStore {
   return out;
 }
 
+/** Optional file names of stored pictures: anything that is not a usable name is dropped. */
+function readAssetNames(raw: unknown, assets: AssetStore): AssetNames {
+  if (!isObj(raw)) return {};
+  const out: AssetNames = {};
+  for (const [id, v] of Object.entries(raw)) {
+    const name = typeof v === 'string' ? cleanFileName(v) : '';
+    if (name && assets[id] !== undefined) out[id] = name;
+  }
+  return out;
+}
+
 /** Version 1/2: one design whose background lived on `card`. */
 function fromLegacy(t: Obj): Template {
   const card = t.card;
@@ -113,6 +124,7 @@ function fromLegacy(t: Obj): Template {
     sides: { front, back: null },
     page: { ...readPage(t.page), printMethod: 'cutouts' },
     assets: readAssets(t.assets),
+    assetNames: {},
   };
 }
 
@@ -123,13 +135,15 @@ function fromV3(t: Obj): Template {
   const front = readSide(t.sides.front, 'front');
   const back = t.sides.back === null || t.sides.back === undefined ? null : readSide(t.sides.back, 'back');
   if (sidedness === 'different' && !back) fail('a template with different sides needs a back design');
+  const assets = readAssets(t.assets);
   return {
     version: TEMPLATE_VERSION,
     card: readGeometry(t.card),
     sidedness,
     sides: { front, back },
     page: readPage(t.page),
-    assets: readAssets(t.assets),
+    assets,
+    assetNames: readAssetNames(t.assetNames, assets),
   };
 }
 
@@ -174,7 +188,7 @@ export function parseTemplate(raw: unknown): ParseResult {
     pruneAssets(t);
     const cleaned = JSON.stringify(t) !== before;
     // A legacy top-level card name (or anything else unknown) is dropped by rebuilding the object above.
-    const extraKeys = Object.keys(raw).some((k) => !['version', 'card', 'sidedness', 'sides', 'page', 'assets'].includes(k));
+    const extraKeys = Object.keys(raw).some((k) => !['version', 'card', 'sidedness', 'sides', 'page', 'assets', 'assetNames'].includes(k));
     const missingPrintMethod = !isObj(raw.page) || raw.page.printMethod !== t.page.printMethod;
     return { ok: true, template: t, changed: version !== TEMPLATE_VERSION || repaired > 0 || cleaned || extraKeys || missingPrintMethod };
   } catch (e) {

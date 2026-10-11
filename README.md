@@ -156,7 +156,9 @@ side (SVGs are kept as-is), and **deduplicated by content**: the same picture us
 groups, on several image elements or as the card background is stored once, however many
 times it appears (`template.assets` holds each picture under a content hash and elements refer
 to it as `asset:<id>`). Pictures nothing refers to any more are dropped at the next save. The
-Template files section of the inspector shows each stored picture with a preview and its size.
+*Pictures Stored* section of the inspector lists each stored picture with a preview, the file name
+it was uploaded with and its size (the same picture uploaded again under another name keeps its
+first name; pictures from templates saved before names were kept show as "Picture 1", "Picture 2"…).
 Templates exported by older versions (pictures inline) import fine and are converted on the way in.
 
 When printing, the browser handles the rest: Chromium writes each distinct picture into the PDF
@@ -224,7 +226,8 @@ dialog. If a picture cannot be loaded it says so and lets you try again, print a
 
 Templates are saved and exported as format **version 3**: shared card geometry, the sides mode,
 a `sides.front` design and an optional `sides.back` design (kept while unused), page settings
-including `printMethod`, and the shared picture store. Version 1 and 2 templates (one design)
+including `printMethod`, the shared picture store, and `assetNames` (the file name each stored
+picture was uploaded with; optional, so files without it still open). Version 1 and 2 templates (one design)
 are upgraded automatically on load or import: they become one-sided with Separate Cutouts as
 the remembered method, and print exactly as before — `copies: 2` stays two copies and is never
 taken to mean double-sided. Versions of the app from before front/back support cannot read

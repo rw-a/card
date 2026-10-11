@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 import { parseTemplate } from '../../src/lib/template-migrations';
-import { defaultTemplate, imageUrl, isAssetRef, newTextElement } from '../../src/lib/template';
+import { defaultTemplate, imageUrl, isAssetRef, newImageElement, newTextElement } from '../../src/lib/template';
 import { planPrint } from '../../src/lib/print-plan';
 import type { ImageElement, Template } from '../../src/lib/types';
 
@@ -193,5 +193,27 @@ test.describe('unreadable input', () => {
     const before = JSON.stringify(legacy);
     parseTemplate(legacy);
     expect(JSON.stringify(legacy)).toBe(before);
+  });
+});
+
+test.describe('picture file names', () => {
+  test('names of stored pictures are kept; unusable names and names of missing pictures are dropped', () => {
+    const t = defaultTemplate(['Name']);
+    t.assets = { a: 'data:image/png;base64,AAAA', b: 'data:image/png;base64,BBBB' };
+    t.sides.front.bgImage = 'asset:a';
+    t.sides.front.elements.push(newImageElement({ src: 'asset:b' }));
+    const raw = { ...structuredClone(t), assetNames: { a: 'logo.png', b: 42, gone: 'ghost.png', c: '  ' } };
+    const out = parsed(raw);
+    expect(out.assetNames).toEqual({ a: 'logo.png' });
+    // and a clean file reads back unchanged
+    const again = parseTemplate(structuredClone(out));
+    expect(again.ok && again.changed).toBe(false);
+  });
+
+  test('older files have no names: version 1/2 and version 3 without the field', () => {
+    expect(parsed(fixture(1)).assetNames).toEqual({});
+    expect(parsed(fixture(2)).assetNames).toEqual({});
+    const { assetNames: _none, ...withoutNames } = defaultTemplate();
+    expect(parsed(withoutNames).assetNames).toEqual({});
   });
 });

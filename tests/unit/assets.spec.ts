@@ -9,6 +9,8 @@ import {
   internAllImages,
   internAsset,
   isAssetRef,
+  cleanFileName,
+  nameAsset,
   newImageElement,
   pruneAssets,
   unusedAssetIds,
@@ -149,5 +151,38 @@ test.describe('references and pruning', () => {
     t.sides.back.elements = [];
     expect(pruneAssets(t)).toBe(1);
     expect(t.assets).toEqual({});
+  });
+});
+
+test.describe('picture file names', () => {
+  test('cleanFileName keeps just the trimmed file name, within a sensible length', () => {
+    expect(cleanFileName('  bears.png ')).toBe('bears.png');
+    expect(cleanFileName('C:\\fakepath\\camp logo.jpg')).toBe('camp logo.jpg');
+    expect(cleanFileName('photos/2026/lions.webp')).toBe('lions.webp');
+    expect(cleanFileName('   ')).toBe('');
+    expect(cleanFileName('x'.repeat(300))).toHaveLength(120);
+  });
+
+  test('nameAsset remembers the first name a picture was uploaded with', () => {
+    const assets: AssetStore = {};
+    const names: Record<string, string> = {};
+    const ref = internAsset(assets, A);
+    nameAsset(names, ref, 'bears.png');
+    nameAsset(names, internAsset(assets, A), 'otters.png'); // the same picture again
+    expect(names).toEqual({ [ref.slice(ASSET_PREFIX.length)]: 'bears.png' });
+    nameAsset(names, 'https://example.com/x.png', 'x.png'); // not a stored picture
+    nameAsset(names, internAsset(assets, B), '   '); // no usable name
+    expect(Object.keys(names)).toHaveLength(1);
+  });
+
+  test('pruning a picture also forgets its name', () => {
+    const t = defaultTemplate(['Name']);
+    const a = internAsset(t.assets, A);
+    const b = internAsset(t.assets, B);
+    nameAsset(t.assetNames, a, 'keep.png');
+    nameAsset(t.assetNames, b, 'drop.png');
+    t.sides.front.elements.push(newImageElement({ src: a }));
+    expect(pruneAssets(t)).toBe(1);
+    expect(t.assetNames).toEqual({ [a.slice(ASSET_PREFIX.length)]: 'keep.png' });
   });
 });

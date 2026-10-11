@@ -160,7 +160,7 @@ export default function TemplateBasics() {
                 const stillWanted = beginAsyncEdit(side, 'bgImage');
                 const dataUrl = await readImageFile(f, 2400);
                 if (!stillWanted()) return;
-                const ref = internImage(dataUrl);
+                const ref = internImage(dataUrl, f.name);
                 updateSide(side, (d) => (d.bgImage = ref));
               }}
             />

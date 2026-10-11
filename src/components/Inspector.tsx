@@ -43,7 +43,16 @@ export default function Inspector() {
 function CardInspector() {
   let importInput!: HTMLInputElement;
   const [confirmReset, setConfirmReset] = createSignal(false);
-  const storedPictures = createMemo(() => Object.entries(template.assets).sort(([a], [b]) => a.localeCompare(b)));
+  /**
+   * Each stored picture under the file name it was uploaded with, A–Z; pictures
+   * from older templates have no name and are listed after them as "Picture N".
+   */
+  const storedPictures = createMemo(() => {
+    const all = Object.entries(template.assets).map(([id, url]) => ({ id, url, name: template.assetNames[id] ?? '' }));
+    const named = all.filter((p) => p.name).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }) || a.id.localeCompare(b.id));
+    const unnamed = all.filter((p) => !p.name).sort((a, b) => a.id.localeCompare(b.id));
+    return [...named.map((p) => ({ ...p, label: p.name })), ...unnamed.map((p, i) => ({ ...p, label: `Picture ${i + 1}` }))];
+  });
 
   function exportTemplate() {
     const copy = structuredClone(unwrap(template));
@@ -125,11 +134,13 @@ function CardInspector() {
         <Show when={storedPictures().length > 0} fallback={<p class="muted small">No pictures stored.</p>}>
           <ul class="stored-pictures">
             <For each={storedPictures()}>
-              {([, url], index) => (
+              {(p) => (
                 <li class="stored-picture" data-testid="stored-picture">
-                  <img class="thumb" src={url} alt={`Stored picture ${index() + 1}`} loading="lazy" />
-                  <span class="stored-picture-name">Picture {index() + 1}</span>
-                  <span class="stored-picture-size">{formatBytes(dataUrlBytes(url))}</span>
+                  <img class="thumb" src={p.url} alt={p.label} loading="lazy" />
+                  <span class="stored-picture-name" classList={{ unnamed: !p.name }} title={p.label}>
+                    {p.label}
+                  </span>
+                  <span class="stored-picture-size">{formatBytes(dataUrlBytes(p.url))}</span>
                 </li>
               )}
             </For>
@@ -473,7 +484,7 @@ function ImageInspector(props: { el: ImageElement }) {
               const stillWanted = beginAsyncEdit(side, `${id}:src`);
               const dataUrl = await readImageFile(f);
               if (!stillWanted() || !findElement(side, id)) return;
-              const ref = internImage(dataUrl);
+              const ref = internImage(dataUrl, f.name);
               updateElement<ImageElement>(side, id, (el) => (el.src = ref), true);
             }}
           />
@@ -568,7 +579,7 @@ function ImageRuleEditor(props: { elementId: string; rule: ImageRule; onChange: 
     const t = target(slot);
     const dataUrl = await readImageFile(file);
     if (!t.live()) return;
-    applyPictures(t.side, t.id, [{ slot, ref: internImage(dataUrl) }]);
+    applyPictures(t.side, t.id, [{ slot, ref: internImage(dataUrl, file.name) }]);
   }
 
   async function bulkUpload(files: File[]) {
@@ -588,7 +599,7 @@ function ImageRuleEditor(props: { elementId: string; rule: ImageRule; onChange: 
       return [{ slot, file: files[i], t: target(slot) }];
     });
     const read = await Promise.all(pending.map(async (p) => ({ ...p, dataUrl: await readImageFile(p.file) })));
-    const done = read.filter((p) => p.t.live()).map((p) => ({ slot: p.slot, ref: internImage(p.dataUrl) }));
+    const done = read.filter((p) => p.t.live()).map((p) => ({ slot: p.slot, ref: internImage(p.dataUrl, p.file.name) }));
     applyPictures(side, id, done);
     const rule = (() => {
       const el = findElement(side, id);
