@@ -43,12 +43,15 @@ and never uploaded.
 
 ## Getting started
 
-1. **Data** — choose your CSV file, or paste cells copied from your spreadsheet (see
+Card Maker works in three stages, each a tab along the top of the screen: **Data**, **Design** and
+**Print**. Work through them from left to right; you can go back to an earlier tab at any time.
+
+1. **Data tab** — choose your CSV file, or paste cells copied from your spreadsheet (see
    [Preparing your data](#preparing-your-data)). To try Card Maker first, choose
    **Load sample data**.
-2. **Design** — edit the starter card: click an element to change it, drag it to move it, and add
+2. **Design tab** — edit the starter card: click an element to change it, drag it to move it, and add
    text, shapes or pictures. Insert a column into text with `{{Column name}}`.
-3. **Print** — choose the paper and settings, check the preview, then choose
+3. **Print tab** — choose the paper and settings, check the preview, then choose
    **Print / Save as PDF**.
 
 For a short version of these instructions inside the app, choose the **?** (Help) button in the

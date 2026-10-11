@@ -54,17 +54,21 @@ export default function Help() {
             </Dialog.Header>
             <Dialog.Body class="help-body">
               <h3>Getting started</h3>
+              <p>
+                Card Maker works in three stages, each a tab along the top of the screen: <strong>Data</strong>, <strong>Design</strong> and{' '}
+                <strong>Print</strong>. Work through them from left to right; you can go back to an earlier tab at any time.
+              </p>
               <ol>
                 <li>
-                  <strong>Data</strong> — choose your CSV file, or paste cells copied from your spreadsheet. To try Card Maker first, choose{' '}
+                  <strong>Data tab</strong> — choose your CSV file, or paste cells copied from your spreadsheet. To try Card Maker first, choose{' '}
                   <em>Load sample data</em>.
                 </li>
                 <li>
-                  <strong>Design</strong> — edit the starter card: click an element to change it, drag it to move it, and add text, shapes or
+                  <strong>Design tab</strong> — edit the starter card: click an element to change it, drag it to move it, and add text, shapes or
                   pictures.
                 </li>
                 <li>
-                  <strong>Print</strong> — choose the paper and settings, check the preview, then choose <em>Print / Save as PDF</em>.
+                  <strong>Print tab</strong> — choose the paper and settings, check the preview, then choose <em>Print / Save as PDF</em>.
                 </li>
               </ol>
 
