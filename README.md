@@ -192,7 +192,7 @@ touch.
 
 ## Running your own copy
 
-Card Maker is a static web app. To run it locally, install [Node.js](https://nodejs.org/) 22, then:
+Card Maker is a static web app. To run it locally, install [Node.js](https://nodejs.org/) 22.12 or later, then:
 
 ```bash
 npm install

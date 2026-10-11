@@ -9,8 +9,15 @@ Card Maker is a static single-page app: load a CSV, design one card template, pr
 row. Everything runs in the browser; there is no server. Deployed to GitHub Pages.
 
 Stack: [SolidJS](https://www.solidjs.com/), [Park UI](https://park-ui.com/) on
-[Ark UI](https://ark-ui.com/), [Panda CSS](https://panda-css.com/), [Vite](https://vitejs.dev/),
-PapaParse for CSV, Lucide icons, Playwright for all tests. Node 22 (see `.nvmrc`).
+[Ark UI](https://ark-ui.com/), [Panda CSS](https://panda-css.com/), [Vite](https://vitejs.dev/) 8
+(Rolldown), TypeScript 7, PapaParse for CSV, Lucide icons, Playwright for all tests. Node 22.12 or
+later (see `.nvmrc`; Vite 8 requires it).
+
+Build notes (`vite.config.ts`): `cssTarget` is the first browsers with `:has()`, which the styles
+need; a lower target makes the CSS minifier add fallbacks (e.g. `:-webkit-any()`) that only bloat
+the bundle. Rolldown's `invalidAnnotation` and `pluginTimings` checks are off because the first
+only reports misplaced `@__PURE__` comments in Panda's generated `styled-system/`. TypeScript 7
+no longer accepts `baseUrl`; `paths` resolve relative to the tsconfig.
 
 ## Commands
 
@@ -47,7 +54,9 @@ Before finishing a change, run `npm run typecheck`, `npm run lint`, `npm run for
 - **Formatting-only commits** go in `.git-blame-ignore-revs`.
 - **Help text** in `Help.tsx` is a short version of `README.md`; when a user-facing feature changes,
   update both.
-- **Adding Park UI components** with `npx @park-ui/cli add <name>`: the CLI may generate
+- **Adding Park UI components** with `npx @park-ui/cli add <name>`. The CLI is not a dependency:
+  its latest release (1.0.1) declares a TypeScript 5 peer, which conflicts with TypeScript 7, so
+  `npx` fetches it when needed. It may generate
   `createStyleContext` (replace it with `createSlotRecipeContext`, which this Panda version uses) and
   register slot recipes under `recipes` in `src/theme/recipes/index.ts` (move them to `slotRecipes`).
   Render dialogs and other overlays in a `Portal` so they inherit no styles from where they are
