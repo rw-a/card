@@ -319,7 +319,7 @@ test.describe('Sides: interactions that span a switch', () => {
     await expect.poll(() => heldReads(page)).toBe(1);
     await editSide(page, 'front');
     await releaseRead(page, 0);
-    await expect.poll(async () => ((await getElement(page, 'Image', 'back')) as ImageElement).src).toMatch(/^asset:/);
+    await expect.poll(async () => ((await getElement(page, 'Image', 'back')) as ImageElement).src).not.toBe('');
     const t = await getTemplate(page);
     expect(t.sides.front.elements.some((e) => e.kind === 'image')).toBe(false);
     expect(t.sides.back!.elements.find((e) => e.id === imageId)).toBeTruthy();
@@ -376,7 +376,7 @@ test.describe('Sides: interactions that span a switch', () => {
     await page.waitForTimeout(200);
     await expect(canvasImage(page)).toHaveAttribute('src', second.dataUrl);
     await page.evaluate(() => window.cardMaker.flushPersist());
-    expect(Object.values((await getTemplate(page)).assets)).toEqual([second.dataUrl]);
+    expect(Object.values((await getTemplate(page)).assets)).toEqual([{ name: 'second.png', dataUrl: second.dataUrl }]);
   });
 
   test('an upload finishing after a template import is discarded', async ({ page }) => {
@@ -476,7 +476,7 @@ test.describe('Sides: files', () => {
     await deselect(page);
     await setSides(page, 'single'); // the picture now lives only on a saved, unused back
     await page.evaluate(() => window.cardMaker.flushPersist()); // saving prunes unused pictures…
-    expect(Object.values((await getStoredTemplate(page)).assets)).toEqual([pic.dataUrl]); // …but not this one
+    expect(Object.values((await getStoredTemplate(page)).assets)).toEqual([{ name: 'back.png', dataUrl: pic.dataUrl }]); // …but not this one
     await goTo(page, 'print');
     await page.locator('[data-field="Copies of Each Badge"] input').fill('2');
     await goTo(page, 'design');
@@ -488,8 +488,8 @@ test.describe('Sides: files', () => {
 
     const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export JSON' }).click()]);
     const json = JSON.parse(await (await download.createReadStream()).toArray().then((c) => Buffer.concat(c).toString()));
-    expect(json).toMatchObject({ version: 3, sidedness: 'single', page: { copies: 2, printMethod: 'duplex' } });
-    expect(Object.values(json.assets)).toEqual([pic.dataUrl]); // a back-only picture is not pruned from the export
+    expect(json).toMatchObject({ version: 1, sidedness: 'single', page: { copies: 2, printMethod: 'duplex' } });
+    expect(Object.values(json.assets)).toEqual([{ name: 'back.png', dataUrl: pic.dataUrl }]); // a back-only picture is not pruned from the export
     expect(json.sides.back.elements.some((e: ImageElement) => e.kind === 'image')).toBe(true);
 
     await page.getByRole('button', { name: 'Reset to default' }).click();
@@ -524,8 +524,8 @@ test.describe('Sides: files', () => {
       void d.dismiss();
     });
     const bad = [
-      { version: 3, sidedness: 'different', card: { width: 100, height: 140 }, sides: { front: { elements: [] }, back: null }, page: {} },
-      { version: 7 },
+      { ...before, sides: { ...before.sides, back: null } },
+      { ...before, version: 7 },
     ];
     for (const [i, file] of bad.entries()) {
       await page
@@ -533,8 +533,8 @@ test.describe('Sides: files', () => {
         .setInputFiles({ name: `bad${i}.json`, mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(file)) });
       await expect.poll(() => messages.length).toBe(i + 1);
     }
-    expect(messages[0]).toMatch(/Could not import template: .*back design/);
-    expect(messages[1]).toMatch(/newer version/);
+    expect(messages[0]).toMatch(/Could not import template: .*different sides need a back design/);
+    expect(messages[1]).toMatch(/Could not import template: .*different version of Card Maker/);
     expect(await getTemplate(page)).toEqual(before);
     expect((await getEditor(page)).activeSide).toBe(editor.activeSide);
     // History is intact: one undo removes the mode change

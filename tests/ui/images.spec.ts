@@ -18,7 +18,7 @@ import {
   selectOption,
 } from './helpers';
 import type { ImageElement } from '../../src/lib/types';
-import { ASSET_PREFIX, imageUrl } from '../../src/lib/template';
+import { pictureUrl } from '../../src/lib/template';
 import { formatBytes } from '../../src/lib/images';
 
 const imageEl = async (page: import('@playwright/test').Page) => (await getElement(page, 'Image')) as ImageElement;
@@ -51,7 +51,7 @@ test.describe('Images – fixed picture', () => {
     await expect.poll(() => canvasImage(page).evaluate((img) => (img as HTMLImageElement).naturalWidth)).toBe(1200);
     expect(await canvasImage(page).evaluate((img) => (img as HTMLImageElement).naturalHeight)).toBe(240);
     const t = await getTemplate(page);
-    const stored = imageUrl(t.assets, (await imageEl(page)).src);
+    const stored = pictureUrl(t.assets, (await imageEl(page)).src);
     expect(stored.startsWith('data:image/png')).toBe(true); // PNG keeps transparency
     expect(stored.length).toBeLessThan(huge.dataUrl.length);
   });
@@ -273,7 +273,7 @@ test.describe('Images – deduplicated storage', () => {
 
     const rule = (await imageEl(page)).imageRule!;
     expect(rule.map.Bears).toBe(rule.map.Otters);
-    expect(rule.map.Bears.startsWith(ASSET_PREFIX)).toBe(true);
+    expect(Object.keys((await getTemplate(page)).assets)).toContain(rule.map.Bears); // refers to a stored picture
     expect(rule.map.Falcons).not.toBe(rule.map.Bears);
     expect(await assetCount(page)).toBe(2);
 
@@ -341,7 +341,7 @@ test.describe('Images – deduplicated storage', () => {
     await expect.poll(() => assetCount(page)).toBe(0);
   });
 
-  test('exported JSON holds each picture once; a legacy v1 export still imports', async ({ page }) => {
+  test('exported JSON holds each picture once and imports back as it was', async ({ page }) => {
     await loadSample(page);
     const logo = await makePng(page, 'logo.png', '#00aa00');
     await addImageElement(page);
@@ -354,35 +354,20 @@ test.describe('Images – deduplicated storage', () => {
     const payload = logo.dataUrl.split(',')[1];
     expect(text.split(payload).length - 1).toBe(1); // the picture's bytes appear exactly once
     const exported = JSON.parse(text);
-    expect(exported.version).toBe(3);
-    expect(Object.keys(exported.assets)).toHaveLength(1);
+    expect(exported.version).toBe(1);
+    expect(Object.values(exported.assets)).toEqual([{ name: 'logo.png', dataUrl: logo.dataUrl }]);
 
-    // A real version-1 file: one design, background on the card, pictures inline (the same one twice), a card name
-    const elements = structuredClone(exported.sides.front.elements);
-    for (const el of elements) if (el.kind === 'image') el.src = logo.dataUrl;
-    const { printMethod: _unused, ...legacyPage } = exported.page;
-    const v1 = {
-      version: 1,
-      name: 'Old style',
-      card: { width: 86, height: exported.card.height, borderRadius: exported.card.borderRadius, bg: '#ffffff', bgImage: null },
-      page: legacyPage,
-      elements,
-    };
+    await page.getByRole('button', { name: 'Reset to default' }).click();
+    await page.getByRole('button', { name: 'Really reset?' }).click();
+    await expect(canvasImage(page)).toHaveCount(0);
     await page.locator('input[type=file][accept*="json"]').setInputFiles({
-      name: 'old.lanyard.json',
+      name: 'x.card-maker.json',
       mimeType: 'application/json',
-      buffer: Buffer.from(JSON.stringify(v1)),
+      buffer: Buffer.from(text),
     });
-    await expect(page.getByTestId('topbar-info')).toHaveText('86 × 140 mm');
     await expect(canvasImage(page)).toHaveCount(2);
     await expect(canvasImage(page).first()).toHaveAttribute('src', logo.dataUrl);
-    const t = await getTemplate(page);
-    expect(t).not.toHaveProperty('name');
-    expect(t.version).toBe(3);
-    expect(t.sidedness).toBe('single');
-    expect(t.page.printMethod).toBe('cutouts');
-    expect(Object.keys(t.assets)).toHaveLength(1);
-    for (const el of t.sides.front.elements) if (el.kind === 'image') expect(el.src.startsWith(ASSET_PREFIX)).toBe(true);
+    expect(await getTemplate(page)).toEqual(exported);
   });
 
   test('the card background is stored as a picture too', async ({ page }) => {
@@ -391,8 +376,7 @@ test.describe('Images – deduplicated storage', () => {
     await page.locator('[data-field="Background Image"] input[type=file]').setInputFiles(bg);
     await expect(canvasCard(page)).toHaveCSS('background-image', `url("${bg.dataUrl}")`);
     const t = await getTemplate(page);
-    expect(t.sides.front.bgImage!.startsWith(ASSET_PREFIX)).toBe(true);
-    expect(Object.keys(t.assets)).toHaveLength(1);
+    expect(t.assets[t.sides.front.bgImage!]).toEqual({ name: 'bg.png', dataUrl: bg.dataUrl });
     await page.getByRole('button', { name: 'Remove background image', exact: true }).click();
     await expect(canvasCard(page)).toHaveCSS('background-image', 'none');
     await expect.poll(async () => Object.keys((await getTemplate(page)).assets).length).toBe(0);
@@ -465,7 +449,11 @@ test.describe('Picture file names', () => {
 
     const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export JSON' }).click()]);
     const json = JSON.parse(await (await download.createReadStream()).toArray().then((c) => Buffer.concat(c).toString()));
-    expect(Object.values(json.assetNames).sort()).toEqual(['Camp Background.png', 'logo-2026.png']);
+    expect(
+      Object.values(json.assets)
+        .map((p) => (p as { name: string }).name)
+        .sort(),
+    ).toEqual(['Camp Background.png', 'logo-2026.png']);
     await page.getByRole('button', { name: 'Reset to default' }).click();
     await page.getByRole('button', { name: 'Really reset?' }).click();
     await expect(page.getByTestId('stored-picture')).toHaveCount(0);
@@ -475,51 +463,17 @@ test.describe('Picture file names', () => {
     await expect(names(page)).toHaveText(['Camp Background.png', 'logo-2026.png']);
   });
 
-  test('a removed picture takes its name with it; undo brings both back', async ({ page }) => {
+  test('a removed picture is dropped with its name; undo brings it back', async ({ page }) => {
     await loadSample(page);
     await addImageElement(page);
     await page.getByTestId('image-upload').setInputFiles(await makePng(page, 'badge-logo.png', '#00aa00'));
     await page.getByRole('button', { name: 'Remove picture', exact: true }).click();
     await page.keyboard.press('Escape');
-    await expect.poll(async () => (await getStoredTemplate(page)).assetNames).toEqual({});
+    await expect.poll(async () => (await getStoredTemplate(page)).assets).toEqual({});
     await expect(page.getByTestId('stored-picture')).toHaveCount(0);
     await page.keyboard.press('Control+z');
     await expect(canvasImage(page)).toHaveCount(1);
     await page.locator('.canvas-area').click({ position: { x: 5, y: 5 } }); // undo reselects the layer; show the card panel
     await expect(names(page)).toHaveText(['badge-logo.png']);
-  });
-
-  test('pictures from templates saved before names were kept are listed as "Picture N"', async ({ page }) => {
-    await loadSample(page);
-    const t = await getTemplate(page);
-    const red = await makePng(page, 'a.png', '#ff0000');
-    const blue = await makePng(page, 'b.png', '#0000ff');
-    const legacy = {
-      version: 2,
-      card: { width: t.card.width, height: t.card.height, borderRadius: t.card.borderRadius, bg: '#ffffff', bgImage: 'asset:red' },
-      page: t.page,
-      elements: [
-        {
-          ...(await getElement(page, 'Name')),
-          id: 'img1',
-          name: 'Logo',
-          kind: 'image',
-          src: 'asset:blue',
-          srcColumn: null,
-          imageRule: null,
-          fit: 'contain',
-          borderRadius: 0,
-        },
-      ],
-      assets: { red: red.dataUrl, blue: blue.dataUrl },
-    };
-    await page
-      .locator('input[type=file][accept*="json"]')
-      .setInputFiles({ name: 'old.lanyard.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(legacy)) });
-    await expect(names(page)).toHaveText(['Picture 1', 'Picture 2']);
-    await expect(names(page).first()).toHaveClass(/unnamed/);
-    // A new upload gets its name and is listed first
-    await page.locator('[data-field="Background Image"] input[type=file]').setInputFiles(await makePng(page, 'new.png', '#00ff00'));
-    await expect(names(page)).toHaveText(['new.png', 'Picture 1']); // the old background is replaced (and pruned on save)
   });
 });

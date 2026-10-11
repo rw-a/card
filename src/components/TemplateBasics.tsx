@@ -1,5 +1,5 @@
 import { Show, createEffect, createMemo, createSignal, on } from 'solid-js';
-import { CARD_PRESETS, imageUrl } from '../lib/template';
+import { CARD_PRESETS, pictureUrl } from '../lib/template';
 import { SIDEDNESS_OPTIONS, SIDE_LABEL, sideHasContent } from '../lib/sides';
 import {
   activeDesign,
@@ -163,7 +163,7 @@ export default function TemplateBasics() {
           <span class="card-background-separator" aria-hidden="true" />
           <Field label="Background Image" labelContent="Image" block>
             <PictureControl
-              url={imageUrl(template.assets, activeDesign().bgImage)}
+              url={pictureUrl(template.assets, activeDesign().bgImage)}
               what="background image"
               onPick={() => bgInput.click()}
               onRemove={() => updateSide(activeSide(), (d) => (d.bgImage = null))}

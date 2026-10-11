@@ -71,7 +71,7 @@ export interface RectElement extends BaseElement {
 /** Picture chosen per row from the value of a CSV column (e.g. a bear for the "Bears" group). */
 export interface ImageRule {
   column: string;
-  /** value → image reference (`asset:<id>`) */
+  /** value → stored picture id */
   map: Record<string, string>;
   /** shown when the value is not in `map`; empty = show nothing */
   fallback: string;
@@ -79,7 +79,7 @@ export interface ImageRule {
 
 export interface ImageElement extends BaseElement {
   kind: 'image';
-  /** Reference to an uploaded picture (`asset:<id>`), e.g. the camp logo. */
+  /** Stored picture id of an uploaded picture, e.g. the camp logo ('' = none). */
   src: string;
   /** Optional: take the image URL from this CSV column instead of `src`. */
   srcColumn: string | null;
@@ -120,7 +120,7 @@ export type PrintMethod = 'cutouts' | 'duplex';
 /** Everything one independently designed face owns. */
 export interface SideDesign {
   bg: string;
-  bgImage: string | null; // `asset:<id>` reference (or a legacy data URL)
+  bgImage: string | null; // stored picture id
   elements: TemplateElement[];
 }
 
@@ -142,27 +142,24 @@ export interface PageSettings {
   printMethod: PrintMethod;
 }
 
+/** An uploaded picture: the file name it was uploaded with and its contents. */
+export interface StoredPicture {
+  name: string;
+  dataUrl: string;
+}
+
 /**
  * Uploaded pictures, stored once each and keyed by a hash of their content.
- * Image elements, picture-by-field rules and the card background refer to them
- * as `asset:<id>` (see `imageUrl` / `internAsset` in template.ts), so the same
- * picture used in several places costs its bytes only once.
+ * Image elements, picture-by-field rules and card backgrounds refer to them by id,
+ * so the same picture used in several places costs its bytes only once.
  */
-export type AssetStore = Record<string, string>;
+export type AssetStore = Record<string, StoredPicture>;
 
 /**
- * The file name each stored picture was uploaded with, by asset id (shown under
- * "Pictures Stored"). Optional per picture: pictures from older templates have none.
- * When the same picture is uploaded again under another name, the first name is kept.
+ * Bumped whenever the saved format changes. A template with any other version is
+ * rejected (see template-schema.ts); add a migration there once there are users to keep.
  */
-export type AssetNames = Record<string, string>;
-
-/**
- * Schema history: 1 = one design, pictures inline as data URLs; 2 = one design,
- * pictures in `assets`; 3 = shared geometry plus front/back side designs.
- * Older versions are upgraded by `parseTemplate` (template-migrations.ts).
- */
-export const TEMPLATE_VERSION = 3;
+export const TEMPLATE_VERSION = 1;
 
 export interface Template {
   version: typeof TEMPLATE_VERSION;
@@ -175,7 +172,6 @@ export interface Template {
   };
   page: PageSettings;
   assets: AssetStore;
-  assetNames: AssetNames;
 }
 
 /** Result of measuring a rendered text element. */

@@ -1,16 +1,5 @@
 import { For, Show } from 'solid-js';
-import {
-  dataset,
-  dismissStartupNotice,
-  downloadUnreadableTemplate,
-  persistError,
-  rows,
-  setTab,
-  startupNotice,
-  tab,
-  template,
-  type Tab,
-} from '../lib/store';
+import { dataset, dismissStartupNotice, persistError, rows, setTab, startupNotice, tab, template, type Tab } from '../lib/store';
 import Brand from './Brand';
 import DataPanel from './DataPanel';
 import Designer from './Designer';
@@ -69,17 +58,12 @@ export default function App() {
       </Show>
 
       <Show when={startupNotice()}>
-        {(n) => (
+        {(message) => (
           <Notice warning class="persist-warning" role="alert" data-testid="startup-notice">
-            <strong>{n().savingPaused ? 'Saved template not opened; auto-save paused.' : 'Saved template not opened.'}</strong> {n().message}{' '}
-            <Button variant="outline" size="xs" class="btn small" onClick={downloadUnreadableTemplate}>
-              Download the original
-            </Button>{' '}
-            <Show when={!n().savingPaused}>
-              <Button variant="outline" size="xs" class="btn small" onClick={dismissStartupNotice}>
-                Dismiss
-              </Button>
-            </Show>
+            {message()}{' '}
+            <Button variant="outline" size="xs" class="btn small" onClick={dismissStartupNotice}>
+              Dismiss
+            </Button>
           </Notice>
         )}
       </Show>

@@ -809,9 +809,6 @@ input.color {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.stored-picture-name.unnamed {
-  color: var(--muted);
-}
 .stored-picture-size {
   flex: 0 0 auto;
   color: var(--muted);

@@ -1,5 +1,4 @@
 import type {
-  AssetNames,
   AssetStore,
   ColorRule,
   ImageElement,
@@ -223,7 +222,6 @@ export function defaultTemplate(headers: string[] = []): Template {
   return {
     version: TEMPLATE_VERSION,
     assets: {},
-    assetNames: {},
     card: { width: W, height: H, borderRadius: 3 },
     sidedness: 'single',
     sides: {
@@ -395,24 +393,6 @@ export function describeFit(status: { overflow: boolean; clipped: boolean } | un
   return null;
 }
 
-/**
- * Which picture an image element shows for a row.
- * Priority: image-by-field rule → URL from a column → the fixed upload.
- * Returns '' when nothing applies (the element renders empty).
- */
-export function resolveImageSrc(el: Pick<ImageElement, 'src' | 'srcColumn' | 'imageRule'>, row: Row): string {
-  if (el.imageRule) {
-    const v = (row[el.imageRule.column] ?? '').trim();
-    if (el.imageRule.map[v]) return el.imageRule.map[v];
-    return el.imageRule.fallback || '';
-  }
-  if (el.srcColumn) {
-    const v = (row[el.srcColumn] ?? '').trim();
-    if (v) return v;
-  }
-  return el.src;
-}
-
 /** Start (or re-key) an image rule for `column`, keeping pictures already assigned to the same values. */
 export function buildImageRule(rows: Row[], column: string, existing?: ImageRule | null): ImageRule {
   const map: Record<string, string> = {};
@@ -470,8 +450,6 @@ export function matchFilesToValues(fileNames: string[], values: string[]): FileM
 // Asset store – pictures are kept once, by content
 // ---------------------------------------------------------------------------
 
-export const ASSET_PREFIX = 'asset:';
-
 /** cyrb53: fast, well-distributed 53-bit string hash; returned as 14 hex chars. */
 export function hashString(str: string, seed = 0): string {
   let h1 = 0xdeadbeef ^ seed;
@@ -488,26 +466,6 @@ export function hashString(str: string, seed = 0): string {
   return ((h2 >>> 0) & 0x1fffff).toString(16).padStart(6, '0') + (h1 >>> 0).toString(16).padStart(8, '0');
 }
 
-export function isAssetRef(ref: string | null | undefined): ref is string {
-  return !!ref && ref.startsWith(ASSET_PREFIX);
-}
-
-/**
- * Store a picture (data URL) in `assets` unless an identical one is already
- * there, and return the reference to put on an element. Non-data URLs (http…)
- * are returned unchanged – they are not ours to store.
- * Mutates `assets`.
- */
-export function internAsset(assets: AssetStore, url: string): string {
-  if (!url || !url.startsWith('data:')) return url;
-  const base = hashString(url);
-  let id = base;
-  // Hash collision with different content is astronomically unlikely, but cheap to rule out.
-  for (let n = 1; assets[id] !== undefined && assets[id] !== url; n++) id = `${base}-${n}`;
-  assets[id] = url;
-  return ASSET_PREFIX + id;
-}
-
 /** A file name fit to show and store: no folders, no surrounding spaces, not absurdly long. */
 export function cleanFileName(name: string): string {
   const base = name.split(/[\\/]/).pop() ?? '';
@@ -515,25 +473,42 @@ export function cleanFileName(name: string): string {
 }
 
 /**
- * Remember the file name a stored picture was uploaded with. A picture that
- * already has a name keeps it (the same picture uploaded again under another
- * name is still one stored picture). Mutates `names`.
+ * Store an uploaded picture (data URL) unless an identical one is already there, and
+ * return its id. A picture that is already stored keeps the name it was first
+ * uploaded with. Mutates `assets`.
  */
-export function nameAsset(names: AssetNames, ref: string, fileName: string) {
-  if (!isAssetRef(ref)) return;
-  const id = ref.slice(ASSET_PREFIX.length);
-  const name = cleanFileName(fileName);
-  if (name && !names[id]) names[id] = name;
+export function internAsset(assets: AssetStore, dataUrl: string, fileName: string): string {
+  const base = hashString(dataUrl);
+  let id = base;
+  // Hash collision with different content is astronomically unlikely, but cheap to rule out.
+  for (let n = 1; assets[id] !== undefined && assets[id].dataUrl !== dataUrl; n++) id = `${base}-${n}`;
+  assets[id] ??= { name: cleanFileName(fileName) || 'Picture', dataUrl };
+  return id;
 }
 
-/** Turn a reference (or a plain/legacy URL) into something an <img> can show. */
-export function imageUrl(assets: AssetStore | undefined, ref: string | null | undefined): string {
-  if (!ref) return '';
-  if (isAssetRef(ref)) return assets?.[ref.slice(ASSET_PREFIX.length)] ?? '';
-  return ref;
+/** The data URL of a stored picture, or '' for none / a picture that is gone. */
+export function pictureUrl(assets: AssetStore | undefined, id: string | null | undefined): string {
+  return (id && assets?.[id]?.dataUrl) || '';
 }
 
-/** Every picture reference one design uses (elements, rules, fallbacks, background). */
+/**
+ * The image an image element shows for a row, ready for an <img>.
+ * Priority: picture-by-field rule → URL from a column → the fixed upload.
+ * Returns '' when nothing applies (the element renders empty).
+ */
+export function resolveImageUrl(el: Pick<ImageElement, 'src' | 'srcColumn' | 'imageRule'>, row: Row, assets: AssetStore): string {
+  if (el.imageRule) {
+    const v = (row[el.imageRule.column] ?? '').trim();
+    return pictureUrl(assets, el.imageRule.map[v] || el.imageRule.fallback);
+  }
+  if (el.srcColumn) {
+    const v = (row[el.srcColumn] ?? '').trim();
+    if (v) return v;
+  }
+  return pictureUrl(assets, el.src);
+}
+
+/** Every stored picture id one design uses (elements, rules, fallbacks, background). */
 export function imageRefsInDesign(d: SideDesign): string[] {
   const refs: string[] = [];
   if (d.bgImage) refs.push(d.bgImage);
@@ -548,61 +523,20 @@ export function imageRefsInDesign(d: SideDesign): string[] {
   return refs;
 }
 
-/** Every picture reference in every stored design, including a back that is saved but not currently used. */
+/** Every stored picture id in every stored design, including a back that is saved but not currently used. */
 export function imageRefsIn(t: Pick<Template, 'sides'>): string[] {
   return getStoredDesigns(t).flatMap(imageRefsInDesign);
 }
 
 /** Ids of stored pictures nothing refers to any more. */
 export function unusedAssetIds(t: Pick<Template, 'sides' | 'assets'>): string[] {
-  const used = new Set(
-    imageRefsIn(t)
-      .filter(isAssetRef)
-      .map((r) => r.slice(ASSET_PREFIX.length)),
-  );
+  const used = new Set(imageRefsIn(t));
   return Object.keys(t.assets).filter((id) => !used.has(id));
 }
 
-/** Remove unreferenced pictures, and the names of pictures that are gone. Mutates `t`; returns how many pictures were removed. */
-export function pruneAssets(t: Pick<Template, 'sides' | 'assets'> & { assetNames?: AssetNames }): number {
+/** Remove unreferenced pictures. Mutates `t`; returns how many were removed. */
+export function pruneAssets(t: Pick<Template, 'sides' | 'assets'>): number {
   const ids = unusedAssetIds(t);
   for (const id of ids) delete t.assets[id];
-  if (t.assetNames) {
-    for (const id of Object.keys(t.assetNames)) if (t.assets[id] === undefined) delete t.assetNames[id];
-  }
   return ids.length;
-}
-
-/** Approximate bytes taken by the stored pictures. */
-export function assetBytes(assets: AssetStore): number {
-  let n = 0;
-  for (const url of Object.values(assets)) n += url.length;
-  return n;
-}
-
-/**
- * Move every inline data URL (version 1 templates, or anything pasted in by hand)
- * in every stored design into the asset store, deduplicating along the way.
- * Mutates and returns `t`; does not touch the schema version.
- */
-export function internAllImages<T extends Pick<Template, 'sides' | 'assets'>>(t: T): T {
-  t.assets ??= {};
-  for (const d of getStoredDesigns(t)) internDesignImages(d, t.assets);
-  return t;
-}
-
-function internDesignImages(d: SideDesign, assets: AssetStore) {
-  if (d.bgImage && !isAssetRef(d.bgImage)) d.bgImage = internAsset(assets, d.bgImage);
-  for (const el of d.elements) {
-    if (el.kind !== 'image') continue;
-    if (el.src && !isAssetRef(el.src)) el.src = internAsset(assets, el.src);
-    if (el.imageRule) {
-      for (const [k, v] of Object.entries(el.imageRule.map)) {
-        if (v && !isAssetRef(v)) el.imageRule.map[k] = internAsset(assets, v);
-      }
-      if (el.imageRule.fallback && !isAssetRef(el.imageRule.fallback)) {
-        el.imageRule.fallback = internAsset(assets, el.imageRule.fallback);
-      }
-    }
-  }
 }

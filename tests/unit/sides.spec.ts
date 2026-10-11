@@ -59,7 +59,7 @@ test.describe('side resolvers', () => {
 test.describe('cloning a side', () => {
   test('makes an independent deep copy with fresh ids that shares picture references', () => {
     const t = defaultTemplate(['Name', 'Group']);
-    const pic = internAsset(t.assets, 'data:image/png;base64,AAAA');
+    const pic = internAsset(t.assets, 'data:image/png;base64,AAAA', 'logo.png');
     t.sides.front.bgImage = pic;
     t.sides.front.elements.push(newImageElement({ src: pic, imageRule: { column: 'Group', map: { Bears: pic }, fallback: pic } }));
     const name = t.sides.front.elements.find((e) => e.name === 'Name') as TextElement;
@@ -78,7 +78,7 @@ test.describe('cloning a side', () => {
     // Nested rule maps are not shared
     const copiedName = copy.elements.find((e) => e.name === 'Name') as TextElement;
     copiedName.colorRule!.map.Bears = '#ff0000';
-    img.imageRule!.map.Lions = 'asset:other';
+    img.imageRule!.map.Lions = 'other';
     copiedName.x = 99;
     expect(name.colorRule!.map.Bears).toBe('#111111');
     expect((t.sides.front.elements.find((e) => e.kind === 'image') as ImageElement).imageRule!.map).toEqual({ Bears: pic });
@@ -90,7 +90,7 @@ test.describe('cloning a side', () => {
     expect(sideHasContent(createBlankSide())).toBe(false);
     expect(sideHasContent(null)).toBe(false);
     expect(sideHasContent({ ...createBlankSide(), bg: '#ff0000' })).toBe(true);
-    expect(sideHasContent({ ...createBlankSide(), bgImage: 'asset:x' })).toBe(true);
+    expect(sideHasContent({ ...createBlankSide(), bgImage: 'x' })).toBe(true);
     expect(sideHasContent({ ...createBlankSide(), elements: [newTextElement()] })).toBe(true);
   });
 });

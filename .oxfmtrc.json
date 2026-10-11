@@ -6,7 +6,6 @@
   "semi": true,
   "trailingComma": "all",
   "arrowParens": "always",
-  // Generated code keeps the Park UI CLI's own style so it can be regenerated cleanly;
-  // the legacy template fixtures are kept byte-for-byte as older versions saved them.
-  "ignorePatterns": ["src/components/park/**", "src/theme/**", "tests/fixtures/**", "styled-system/**", "dist/**", "package-lock.json"]
+  // Generated code keeps the Park UI CLI's own style so it can be regenerated cleanly.
+  "ignorePatterns": ["src/components/park/**", "src/theme/**", "styled-system/**", "dist/**", "package-lock.json"]
 }

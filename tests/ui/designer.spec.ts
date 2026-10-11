@@ -546,7 +546,7 @@ test.describe('Designer – inspector', () => {
     expect(narrowUploadBox.x).toBeGreaterThan(narrowSeparatorBox.x + narrowSeparatorBox.width);
   });
 
-  test('export downloads the design as JSON without a card name', async ({ page }) => {
+  test('export downloads the design as JSON', async ({ page }) => {
     await loadSample(page);
     await expect(page.locator('[data-field="Name"]')).toHaveCount(0);
     await expect(page.locator('.side.right').getByRole('button', { name: 'Export JSON' })).toBeVisible();
@@ -554,14 +554,13 @@ test.describe('Designer – inspector', () => {
     expect(download.suggestedFilename()).toBe('template.card-maker.json');
     const text = await (await download.createReadStream()).toArray().then((chunks) => Buffer.concat(chunks).toString());
     const json = JSON.parse(text);
-    expect(json).not.toHaveProperty('name');
     expect(json).toEqual(await getTemplate(page));
     expect(json.sides.front.elements).toHaveLength(7);
   });
 
-  test('import JSON replaces the design and discards an old card name', async ({ page }) => {
+  test('import JSON replaces the design', async ({ page }) => {
     await loadSample(page);
-    const t = { ...(await getTemplate(page)), name: 'Imported' };
+    const t = await getTemplate(page);
     t.card.width = 86;
     t.sides.front.elements = t.sides.front.elements.slice(0, 2);
     await page.locator('input[type=file][accept*="json"]').setInputFiles({
@@ -570,7 +569,7 @@ test.describe('Designer – inspector', () => {
       buffer: Buffer.from(JSON.stringify(t)),
     });
     await expect(page.getByTestId('topbar-info')).toHaveText('86 × 140 mm');
-    expect(await getTemplate(page)).not.toHaveProperty('name');
+    expect(await getTemplate(page)).toEqual(t);
     await expect(page.locator('[data-testid="layer"]')).toHaveCount(2);
   });
 

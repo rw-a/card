@@ -14,7 +14,7 @@ test.describe('Data tab', () => {
     await openApp(page);
     await page.getByRole('button', { name: 'Load sample data' }).click();
 
-    await expect(page.getByText(/sample-camp-roster\.csv — 25 People, 6 Columns/i)).toBeVisible();
+    await expect(page.getByText(/sample-data\.csv — 25 People, 6 Columns/i)).toBeVisible();
     await expect(page.getByTestId('tab-data')).toContainText('25');
 
     const table = page.locator('.table').first();

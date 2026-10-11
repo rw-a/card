@@ -1,11 +1,11 @@
 import { createMemo, createSignal, batch } from 'solid-js';
 import { createStore, produce, reconcile, unwrap } from 'solid-js/store';
 import type { Dataset, PreviewSource, SideDesign, SideId, Sidedness, Template, TemplateElement } from './types';
-import { columnsUsedBy, columnsUsedByDesign, defaultTemplate, internAsset, nameAsset, unusedAssetIds } from './template';
+import { columnsUsedBy, columnsUsedByDesign, defaultTemplate, internAsset, unusedAssetIds } from './template';
 import { cloneSideDesign, createBlankSide, normalizeEditableSide } from './sides';
-import { parseTemplate, type ParseResult } from './template-migrations';
+import { parseTemplate, type ParseResult } from './template-schema';
 import { extremeRows } from './stats';
-import { KEYS, type KeyValueStorage, migrateLegacyLocalStorage, openStorage, requestPersistentStorage } from './storage';
+import { KEYS, type KeyValueStorage, openStorage, requestPersistentStorage } from './storage';
 
 // ---------------------------------------------------------------------------
 // Persistence backend (IndexedDB, or localStorage when that is unavailable)
@@ -22,34 +22,12 @@ export { storageName };
 const [persistError, setPersistError] = createSignal<string | null>(null);
 export { persistError };
 
-/**
- * Set when the saved template could not be opened at startup. The original is kept
- * under `KEYS.recovery` (and in memory) so it can be downloaded; if even that backup
- * failed, template auto-save stays off so the original is not overwritten.
- */
-export interface StartupNotice {
-  message: string;
-  /** Auto-save of the template is paused to protect the unreadable original. */
-  savingPaused: boolean;
-}
-const [startupNotice, setStartupNotice] = createSignal<StartupNotice | null>(null);
+/** Set when saved data could not be used at startup and storage was cleared to start fresh. */
+const [startupNotice, setStartupNotice] = createSignal<string | null>(null);
 export { startupNotice };
-let unreadableTemplate: unknown = undefined;
-let templateWritesBlocked = false;
 
 export function dismissStartupNotice() {
   setStartupNotice(null);
-}
-
-/** Save the stored template that could not be opened as a file, exactly as it was found. */
-export function downloadUnreadableTemplate() {
-  if (unreadableTemplate === undefined) return;
-  const blob = new Blob([JSON.stringify(unreadableTemplate, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'unreadable-template.card-maker.json';
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
 function describeWriteError(what: string, e: unknown): string {
@@ -61,7 +39,6 @@ function describeWriteError(what: string, e: unknown): string {
 
 async function write(key: string, value: unknown, what: string): Promise<boolean> {
   if (!storage) return false;
-  if (key === KEYS.template && templateWritesBlocked) return false;
   try {
     await storage.set(key, value);
     setPersistError(null);
@@ -74,7 +51,15 @@ async function write(key: string, value: unknown, what: string): Promise<boolean
 
 function isDataset(x: unknown): x is Dataset {
   const d = x as Dataset | null;
-  return !!d && typeof d === 'object' && Array.isArray(d.headers) && Array.isArray(d.rows) && typeof d.fileName === 'string';
+  return (
+    !!d &&
+    typeof d === 'object' &&
+    typeof d.fileName === 'string' &&
+    Array.isArray(d.headers) &&
+    d.headers.every((h) => typeof h === 'string') &&
+    Array.isArray(d.rows) &&
+    d.rows.every((r) => !!r && typeof r === 'object')
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -118,50 +103,34 @@ export { template };
 const [ready, setReady] = createSignal(false);
 export { ready };
 
-/** Keep an unreadable stored template safe before anything can replace it. */
-async function preserveUnreadable(raw: unknown, result: Extract<ParseResult, { ok: false }>) {
-  unreadableTemplate = raw;
-  let backedUp = false;
-  try {
-    await storage?.set(KEYS.recovery, { savedAt: new Date().toISOString(), reason: result.reason, error: result.error, template: raw });
-    backedUp = !!storage;
-  } catch {
-    backedUp = false;
-  }
-  templateWritesBlocked = !backedUp;
-  setStartupNotice({
-    message: backedUp
-      ? `Your saved template could not be opened, so the default design was loaded. ${result.error} The original was kept and can be downloaded.`
-      : `Your saved template could not be opened and a backup copy could not be made, so auto-saving the template is paused to avoid overwriting it. ${result.error} Download the original, or use Export JSON to keep new work.`,
-    savingPaused: !backedUp,
-  });
-}
-
 /**
- * Open storage, migrate anything saved by older versions, and load the saved
- * template and roster. Call once before rendering; never rejects.
+ * Open storage and load the saved template and roster. Saved data that does not
+ * pass validation (damaged, or from another version of the app) is cleared rather
+ * than loaded, so the app always starts from a consistent state.
+ * Call once before rendering; never rejects.
  */
 export async function initStore(): Promise<void> {
   try {
     storage = await openStorage();
     setStorageName(storage.name);
-    await migrateLegacyLocalStorage(storage);
     const [storedTemplate, storedDataset, pristine] = await Promise.all([
       storage.get(KEYS.template).catch(() => undefined),
       storage.get(KEYS.dataset).catch(() => undefined),
       storage.get<boolean>(KEYS.pristine).catch(() => undefined),
     ]);
     const parsed = storedTemplate === undefined ? null : parseTemplate(storedTemplate);
-    if (parsed && !parsed.ok) await preserveUnreadable(storedTemplate, parsed);
+    const usable = (!parsed || parsed.ok) && (storedDataset === undefined || isDataset(storedDataset));
+    if (!usable) {
+      await storage.clear();
+      setStartupNotice('Your saved work could not be read, so it was cleared and Card Maker started fresh.');
+    }
     batch(() => {
-      if (parsed?.ok) {
+      if (usable && parsed?.ok) {
         docGeneration++;
         setTemplateStore(reconcile(parsed.template, { key: 'id' }));
-        // Templates saved by older versions are written back in the current format, only after they parsed.
-        if (parsed.changed) void write(KEYS.template, structuredClone(parsed.template), 'The template');
       }
-      if (isDataset(storedDataset)) setDatasetRaw(storedDataset);
-      templatePristine = storedTemplate === undefined || pristine === true;
+      if (usable && isDataset(storedDataset)) setDatasetRaw(storedDataset);
+      templatePristine = !usable || storedTemplate === undefined || pristine === true;
       setActiveSideRaw('front');
       setTab(dataset() ? 'design' : 'data');
     });
@@ -184,22 +153,20 @@ function schedulePersist() {
 }
 
 /**
- * Store an uploaded picture once (identical content → same reference) and return
- * the `asset:` reference to put on an element. `fileName` is remembered for the
- * "Pictures Stored" list. Not recorded in the undo history on its own; the
- * element change that follows is. An asset nothing ends up using is pruned
- * (with its name) at the next save.
+ * Store an uploaded picture once (identical content → same id) under the file name
+ * it was uploaded with, and return the id to put on an element. Not recorded in the
+ * undo history on its own; the element change that follows is. A picture nothing
+ * ends up using is pruned at the next save.
  */
-export function internImage(dataUrl: string, fileName?: string): string {
-  let ref = dataUrl;
+export function internImage(dataUrl: string, fileName: string): string {
+  let id = '';
   setTemplateStore(
     produce((t) => {
-      ref = internAsset(t.assets, dataUrl);
-      if (fileName) nameAsset(t.assetNames, ref, fileName);
+      id = internAsset(t.assets, dataUrl, fileName);
     }),
   );
   schedulePersist();
-  return ref;
+  return id;
 }
 
 /** Drop stored pictures that no stored design (front or a retained back) refers to any more. */
@@ -208,10 +175,7 @@ function pruneUnusedAssets() {
   if (ids.length === 0) return;
   setTemplateStore(
     produce((t) => {
-      for (const id of ids) {
-        delete t.assets[id];
-        delete t.assetNames[id];
-      }
+      for (const id of ids) delete t.assets[id];
     }),
   );
 }

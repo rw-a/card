@@ -30,8 +30,7 @@ Built with [SolidJS](https://www.solidjs.com/), [Park UI](https://park-ui.com/),
 Badges can be **one-sided or double-sided** (see [Front and back](#front-and-back)).
 
 The template and roster are saved in your browser automatically and the template can be
-exported/imported as JSON. Exports use the filename `template.card-maker.json`; files exported as
-`template.lanyard.json` by earlier versions import the same way.
+exported/imported as JSON. Exports use the filename `template.card-maker.json`.
 
 ## Where your work is saved
 
@@ -44,8 +43,10 @@ disk pressure (Chrome decides silently, Firefox may show a prompt).
 
 If IndexedDB is unavailable (some private-browsing modes or locked-down browsers) the app falls
 back to localStorage, which only holds about 5 MB. If a save fails for any reason a
-banner appears at the top — export the template as JSON to keep it. State saved by earlier
-versions in localStorage is migrated automatically on first load.
+banner appears at the top — export the template as JSON to keep it.
+
+Saved data is checked when the app starts. If it cannot be used (damaged, or saved by a different
+version of the app) everything saved is cleared, the app starts fresh, and a notice says so.
 
 Saving is debounced while you drag and flushed when you leave the page, so a reload right after
 an edit does not lose it.
@@ -75,8 +76,8 @@ npm run format:check   # report unformatted files without changing them
 
 Settings live in `.oxlintrc.json` and `.oxfmtrc.json` (each rule that is turned off has a comment
 saying why). Formatting follows the existing style: single quotes, semicolons, trailing commas and
-150-character lines. Generated Park UI components (`src/components/park/`, `src/theme/`), Panda's
-`styled-system/` and the legacy template fixtures in `tests/fixtures/` are left alone by both tools.
+150-character lines. Generated Park UI components (`src/components/park/`, `src/theme/`) and Panda's
+`styled-system/` are left alone by both tools.
 CI runs `npm run lint` and `npm run format:check` on every pull request.
 
 Commits that only reformat code are listed in `.git-blame-ignore-revs`. GitHub's blame view skips
@@ -135,8 +136,8 @@ npm run test:report               # open the HTML report of the last run
 
 - `tests/unit/` – fast Node-only tests of the pure modules (CSV parsing, shortest/median/longest
   statistics, placeholder substitution, sheet-layout maths, colour and picture rules, the
-  content-addressed asset store, side resolvers, template migrations against real version 1/2
-  files in `tests/fixtures/`, and print plans for every mode, capacity and paper layout).
+  content-addressed picture store, side resolvers, template validation, and print plans for every
+  mode, capacity and paper layout).
 - `tests/ui/` – end-to-end tests of the three tabs: CSV import by picker, drag-and-drop and paste;
   front and back designs (the three sides modes, editing each side, undo across sides, uploads
   that finish after a side switch); the designer (drag, resize, snapping, keyboard shortcuts,
@@ -144,18 +145,17 @@ npm run test:report               # open the HTML report of the last run
   pictures, downscaling, picture per value of a field with single and bulk upload, fallbacks,
   image URLs from a column); the fit check, including regression tests that a text box pushed
   past the card edge is reported as "cut off" instead of "fits"; deduplicated picture storage
-  (same picture → one asset, pruning, export/import including legacy templates); the print tab
+  (same picture → one stored copy, file names, pruning, export/import); the print tab
   (paper sizes, margins, gaps, crop marks, copies, row ranges, separate cutouts and duplex
   layouts, the print portal and the resulting PDF's page count, order and size); and persistence
-  (IndexedDB round trips, flush on reload, migration from localStorage, a 50,000-row roster,
-  corrupt or newer stored data kept for recovery, and the warning shown when the browser refuses
-  to save).
+  (IndexedDB round trips, flush on reload, a 50,000-row roster, unusable saved data being cleared,
+  and the warning shown when the browser refuses to save).
 
 `playwright.config.ts` builds the app and serves it with `vite preview` automatically. If you
 already have a Chromium you want to use, point `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` at it.
 
 A hook is available in the browser console for debugging: `cardMaker.getTemplate()` returns
-the current (version 3) template, `cardMaker.getEditor()` the side being edited and the
+the current template, `cardMaker.getEditor()` the side being edited and the
 selection, `cardMaker.getDataset()` the loaded CSV, and `cardMaker.storage` reads and
 writes the underlying IndexedDB store.
 
@@ -180,12 +180,11 @@ the optional _Anything else_ fallback, or nothing at all when printed.
 Uploaded pictures are stored inside the template, scaled down to at most 1200 px on the long
 side (SVGs are kept as-is), and **deduplicated by content**: the same picture used for several
 groups, on several image elements or as the card background is stored once, however many
-times it appears (`template.assets` holds each picture under a content hash and elements refer
-to it as `asset:<id>`). Pictures nothing refers to any more are dropped at the next save. The
-_Pictures Stored_ section of the inspector lists each stored picture with a preview, the file name
-it was uploaded with and its size (the same picture uploaded again under another name keeps its
-first name; pictures from templates saved before names were kept show as "Picture 1", "Picture 2"…).
-Templates exported by older versions (pictures inline) import fine and are converted on the way in.
+times it appears (`template.assets` holds each picture under a content hash, with the file name it
+was uploaded with, and elements refer to it by that id). Pictures nothing refers to any more are
+dropped at the next save. The _Pictures Stored_ section of the inspector lists each stored picture
+with a preview, its file name and its size (the same picture uploaded again under another name
+keeps its first name).
 
 When printing, the browser handles the rest: Chromium writes each distinct picture into the PDF
 once, so 100 badges with the same logo cost about as much as one.
@@ -250,20 +249,16 @@ dialog. If a picture cannot be loaded it says so and lets you try again, print a
 
 ## Template format
 
-Templates are saved and exported as format **version 3**: shared card geometry, the sides mode,
-a `sides.front` design and an optional `sides.back` design (kept while unused), page settings
-including `printMethod`, the shared picture store, and `assetNames` (the file name each stored
-picture was uploaded with; optional, so files without it still open). Version 1 and 2 templates (one design)
-are upgraded automatically on load or import: they become one-sided with Separate Cutouts as
-the remembered method, and print exactly as before — `copies: 2` stays two copies and is never
-taken to mean double-sided. Versions of the app from before front/back support cannot read
-version 3 files.
+Templates are saved and exported as JSON with a `version` number (currently `1`): shared card
+geometry (`card`), the sides mode (`sidedness`), a `sides.front` design and an optional
+`sides.back` design (kept while unused), page settings including `printMethod`, and the picture
+store (`assets`: id → `{ name, dataUrl }`). Every stored or imported template is validated
+against that shape (`src/lib/template-schema.ts`); a file with another version or a different
+shape is rejected rather than repaired. An import that cannot be used shows a message and changes
+nothing.
 
-An import that cannot be read is rejected with a message and changes nothing. If the template
-saved in the browser cannot be read (damaged, or written by a newer version of the app), the
-default design is loaded and the original is kept under the `template-recovery` key and offered
-as a download; if even that backup fails, auto-saving the template pauses so the original is not
-overwritten.
+There is no migration code yet. When the format next changes, bump `TEMPLATE_VERSION` and add the
+upgrade step to `template-schema.ts`.
 
 ## Printing tips
 
@@ -301,12 +296,12 @@ src/
     types.ts         Template / element / dataset types
     template.ts      defaults, placeholders, sheet layout maths, palette, picture store
     sides.ts         which design each face shows; cloning sides
-    template-migrations.ts  reading v1/v2/v3 templates (validation + upgrade)
+    template-schema.ts  validation of stored and imported templates
     print-plan.ts    badges → pages with explicit front/back placements, crop marks
     print-ready.ts   waits for fonts, pictures and text fitting before printing
     stats.ts         shortest / median / longest per column
     csv.ts           PapaParse wrapper + sample roster
     images.ts        image upload → data URL with downscaling
-    storage.ts       IndexedDB key-value store, localStorage fallback, migration
+    storage.ts       IndexedDB key-value store, localStorage fallback
     store.ts         Solid store, side being edited, undo/redo, persistence
 ```

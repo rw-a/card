@@ -91,7 +91,7 @@ export default function DataPanel() {
             <Button variant="outline" size="md" class="btn" onClick={() => setPasteOpen((v) => !v)}>
               Paste text
             </Button>
-            <Button variant="outline" size="md" class="btn" onClick={() => loadText(SAMPLE_CSV, 'sample-camp-roster.csv')}>
+            <Button variant="outline" size="md" class="btn" onClick={() => loadText(SAMPLE_CSV, 'sample-data.csv')}>
               Load sample data
             </Button>
           </div>

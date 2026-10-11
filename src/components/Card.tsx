@@ -1,6 +1,6 @@
 import { For, Show, type JSX } from 'solid-js';
 import type { AssetStore, FitStatus, ImageElement, RectElement, Row, SideId, Template, TemplateElement } from '../lib/types';
-import { imageUrl, resolveFill, resolveImageSrc } from '../lib/template';
+import { pictureUrl, resolveFill, resolveImageUrl } from '../lib/template';
 import { getDesignForSide } from '../lib/sides';
 import TextBox from './TextBox';
 
@@ -41,7 +41,7 @@ export default function Card(props: CardProps) {
             width: `${t().card.width}mm`,
             height: `${t().card.height}mm`,
             background: d().bg,
-            'background-image': d().bgImage ? `url(${imageUrl(t().assets, d().bgImage)})` : undefined,
+            'background-image': d().bgImage ? `url(${pictureUrl(t().assets, d().bgImage)})` : undefined,
             'background-size': 'cover',
             'background-position': 'center',
             'border-radius': `${t().card.borderRadius}mm`,
@@ -148,7 +148,7 @@ function RectView(props: { el: RectElement; row: Row; style: JSX.CSSProperties; 
 }
 
 function ImageView(props: { el: ImageElement; row: Row; assets: AssetStore; editor?: boolean; style: JSX.CSSProperties; handlers: Handlers }) {
-  const src = () => imageUrl(props.assets, resolveImageSrc(props.el, props.row));
+  const src = () => resolveImageUrl(props.el, props.row, props.assets);
   /** Editor-only hint explaining why nothing is shown. */
   const placeholder = () => {
     const rule = props.el.imageRule;

@@ -19,7 +19,7 @@ import {
   buildImageRule,
   defaultTemplate,
   distinctValues,
-  imageUrl,
+  pictureUrl,
   matchFilesToValues,
   pruneAssets,
 } from '../lib/template';
@@ -68,18 +68,12 @@ export default function Inspector() {
 function CardInspector() {
   let importInput!: HTMLInputElement;
   const [confirmReset, setConfirmReset] = createSignal(false);
-  /**
-   * Each stored picture under the file name it was uploaded with, A–Z; pictures
-   * from older templates have no name and are listed after them as "Picture N".
-   */
-  const storedPictures = createMemo(() => {
-    const all = Object.entries(template.assets).map(([id, url]) => ({ id, url, name: template.assetNames[id] ?? '' }));
-    const named = all
-      .filter((p) => p.name)
-      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }) || a.id.localeCompare(b.id));
-    const unnamed = all.filter((p) => !p.name).sort((a, b) => a.id.localeCompare(b.id));
-    return [...named.map((p) => ({ ...p, label: p.name })), ...unnamed.map((p, i) => ({ ...p, label: `Picture ${i + 1}` }))];
-  });
+  /** Each stored picture under the file name it was uploaded with, A–Z. */
+  const storedPictures = createMemo(() =>
+    Object.entries(template.assets)
+      .map(([id, picture]) => ({ id, ...picture }))
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }) || a.id.localeCompare(b.id)),
+  );
 
   function exportTemplate() {
     const copy = structuredClone(unwrap(template));
@@ -169,11 +163,11 @@ function CardInspector() {
             <For each={storedPictures()}>
               {(p) => (
                 <li class="stored-picture" data-testid="stored-picture">
-                  <img class="thumb" src={p.url} alt={p.label} loading="lazy" />
-                  <span class="stored-picture-name" classList={{ unnamed: !p.name }} title={p.label}>
-                    {p.label}
+                  <img class="thumb" src={p.dataUrl} alt={p.name} loading="lazy" />
+                  <span class="stored-picture-name" title={p.name}>
+                    {p.name}
                   </span>
-                  <span class="stored-picture-size">{formatBytes(dataUrlBytes(p.url))}</span>
+                  <span class="stored-picture-size">{formatBytes(dataUrlBytes(p.dataUrl))}</span>
                 </li>
               )}
             </For>
@@ -599,7 +593,7 @@ function ImageInspector(props: { el: ImageElement }) {
       <Show when={mode() === 'fixed'}>
         <Field label="Picture" block hint="PNG/JPG/SVG. Stored inside the template (large photos are scaled down).">
           <PictureControl
-            url={imageUrl(template.assets, props.el.src)}
+            url={pictureUrl(template.assets, props.el.src)}
             what="picture"
             onPick={() => input.click()}
             onRemove={() => set((el) => (el.src = ''), true)}
@@ -827,7 +821,7 @@ function ImageRuleEditor(props: { elementId: string; rule: ImageRule; onChange: 
           {(v) => (
             <div class="image-rule-row" data-testid="image-rule-row" data-value={v}>
               <Show when={props.rule.map[v]} fallback={<span class="thumb empty" title="No picture yet" />}>
-                <img class="thumb" src={imageUrl(template.assets, props.rule.map[v])} alt="" />
+                <img class="thumb" src={pictureUrl(template.assets, props.rule.map[v])} alt="" />
               </Show>
               <span class="val" title={v}>
                 {v || <em class="muted">(empty)</em>}
@@ -866,7 +860,7 @@ function ImageRuleEditor(props: { elementId: string; rule: ImageRule; onChange: 
         </For>
         <div class="image-rule-row fallback" data-testid="image-rule-fallback">
           <Show when={props.rule.fallback} fallback={<span class="thumb empty" title="Nothing is shown for other values" />}>
-            <img class="thumb" src={imageUrl(template.assets, props.rule.fallback)} alt="" />
+            <img class="thumb" src={pictureUrl(template.assets, props.rule.fallback)} alt="" />
           </Show>
           <span class="val muted">Anything else</span>
           <span class="row gap-s">

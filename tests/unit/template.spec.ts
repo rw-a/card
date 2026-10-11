@@ -16,7 +16,6 @@ import {
   pageDims,
   placeholdersIn,
   resolveFill,
-  resolveImageSrc,
   substitute,
 } from '../../src/lib/template';
 import type { Row, Template } from '../../src/lib/types';
@@ -173,23 +172,6 @@ test.describe('picture by field', () => {
   const bear = 'data:image/png;base64,BEAR';
   const lion = 'data:image/png;base64,LION';
   const other = 'data:image/png;base64,OTHER';
-
-  test('resolveImageSrc prefers the rule, then the URL column, then the fixed picture', () => {
-    const fixed = { src: 'logo', srcColumn: null, imageRule: null };
-    expect(resolveImageSrc(fixed, { Group: 'Bears' })).toBe('logo');
-
-    const byColumn = { src: 'logo', srcColumn: 'Photo', imageRule: null };
-    expect(resolveImageSrc(byColumn, { Photo: 'https://x/y.png' })).toBe('https://x/y.png');
-    expect(resolveImageSrc(byColumn, { Photo: '  ' })).toBe('logo'); // blank cell → fixed picture
-
-    const rule = { column: 'Group', map: { Bears: bear, Lions: lion }, fallback: other };
-    const byRule = { src: 'logo', srcColumn: 'Photo', imageRule: rule };
-    expect(resolveImageSrc(byRule, { Group: 'Bears', Photo: 'https://x/y.png' })).toBe(bear);
-    expect(resolveImageSrc(byRule, { Group: ' Lions ' })).toBe(lion); // values are trimmed
-    expect(resolveImageSrc(byRule, { Group: 'Wolves' })).toBe(other);
-    expect(resolveImageSrc({ ...byRule, imageRule: { ...rule, fallback: '' } }, { Group: 'Wolves' })).toBe(''); // no fallback → nothing
-    expect(resolveImageSrc(byRule, {})).toBe(other);
-  });
 
   test('buildImageRule keeps pictures already assigned when re-keyed to the same column', () => {
     const rows = [{ G: 'Bears' }, { G: 'Lions' }, { G: 'Bears' }];

@@ -16,18 +16,6 @@ export const KEYS = {
   dataset: 'dataset',
   /** Marker: the stored template is still the auto-generated starter. */
   pristine: 'template-pristine',
-  /** A stored template this version could not read, kept so it is never silently lost. */
-  recovery: 'template-recovery',
-} as const;
-
-/**
- * Keys used by versions that stored everything in localStorage; migrated on first load.
- * (The app was called Lanyard Maker then; these names must match what it wrote.)
- */
-export const LEGACY_LOCAL_KEYS = {
-  template: 'lanyard-maker:template:v1',
-  dataset: 'lanyard-maker:dataset:v1',
-  pristine: 'lanyard-maker:template:pristine',
 } as const;
 
 export interface KeyValueStorage {
@@ -41,9 +29,7 @@ export interface KeyValueStorage {
 // ---------------------------------------------------------------------------
 // IndexedDB
 // ---------------------------------------------------------------------------
-// Still named after the app's old name (Lanyard Maker): renaming the database would leave
-// everything people have saved behind in the old one.
-const DB_NAME = 'lanyard-maker';
+const DB_NAME = 'card-maker';
 const DB_VERSION = 1;
 const STORE = 'kv';
 
@@ -122,7 +108,7 @@ class IndexedDbStorage implements KeyValueStorage {
 // ---------------------------------------------------------------------------
 // localStorage fallback (JSON strings under a prefix)
 // ---------------------------------------------------------------------------
-const LS_PREFIX = 'lanyard-maker:kv:'; // kept for the same reason as DB_NAME
+const LS_PREFIX = 'card-maker:';
 
 class LocalStorageStorage implements KeyValueStorage {
   readonly name = 'localstorage' as const;
@@ -143,7 +129,7 @@ class LocalStorageStorage implements KeyValueStorage {
 }
 
 // ---------------------------------------------------------------------------
-// Selection, migration, quota helpers
+// Selection and quota helpers
 // ---------------------------------------------------------------------------
 
 /** Open IndexedDB, or fall back to localStorage. Never throws. */
@@ -159,41 +145,6 @@ export async function openStorage(): Promise<KeyValueStorage> {
     }
   }
   return new LocalStorageStorage();
-}
-
-/**
- * Copy state saved by older versions (plain localStorage keys) into `storage`,
- * then remove the old copies. Returns true when something was migrated.
- */
-export async function migrateLegacyLocalStorage(storage: KeyValueStorage): Promise<boolean> {
-  let migrated = false;
-  try {
-    const readJson = (k: string): unknown => {
-      const raw = localStorage.getItem(k);
-      if (raw === null) return undefined;
-      try {
-        return JSON.parse(raw) as unknown;
-      } catch {
-        return undefined;
-      }
-    };
-    const template = readJson(LEGACY_LOCAL_KEYS.template);
-    const dataset = readJson(LEGACY_LOCAL_KEYS.dataset);
-    const pristine = localStorage.getItem(LEGACY_LOCAL_KEYS.pristine) === '1';
-    if (template !== undefined && (await storage.get(KEYS.template)) === undefined) {
-      await storage.set(KEYS.template, template);
-      if (pristine) await storage.set(KEYS.pristine, true);
-      migrated = true;
-    }
-    if (dataset !== undefined && (await storage.get(KEYS.dataset)) === undefined) {
-      await storage.set(KEYS.dataset, dataset);
-      migrated = true;
-    }
-    for (const k of Object.values(LEGACY_LOCAL_KEYS)) localStorage.removeItem(k);
-  } catch {
-    /* localStorage unavailable – nothing to migrate */
-  }
-  return migrated;
 }
 
 export interface StorageEstimate {

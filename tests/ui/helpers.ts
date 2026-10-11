@@ -1,7 +1,7 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 import type { SideDesign, SideId, Template, TemplateElement } from '../../src/lib/types';
 
-export { KEYS, LEGACY_LOCAL_KEYS } from '../../src/lib/storage';
+export { KEYS } from '../../src/lib/storage';
 
 /** The three "fit check" variants rendered under the canvas. */
 export const VARIANTS = ['shortest', 'median', 'longest'] as const;
@@ -137,7 +137,7 @@ export function getEditor(page: Page): Promise<{ activeSide: SideId; selectedId:
   return page.evaluate(() => window.cardMaker.getEditor());
 }
 
-type StoredKey = 'template' | 'dataset' | 'template-pristine' | 'template-recovery';
+type StoredKey = 'template' | 'dataset' | 'template-pristine';
 
 /** Read a value straight from the app's persistent storage (IndexedDB, or its fallback). */
 export function storedGet<T = unknown>(page: Page, key: StoredKey): Promise<T | undefined> {
