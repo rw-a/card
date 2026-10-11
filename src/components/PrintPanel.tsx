@@ -453,8 +453,11 @@ export default function PrintPanel() {
       <main class="center print-center">
         <div class="toolbar">
           <div class="row gap">
-            <Button variant="outline" size="md" class="btn" onClick={() => setTab('design')}>
-              <ArrowLeft aria-hidden="true" /> Back to design
+            <Button variant="outline" size="md" class="btn" aria-label="Back to design" onClick={() => setTab('design')}>
+              <ArrowLeft aria-hidden="true" />
+              {/* The shorter label keeps the sheet navigation beside it on the narrowest phones. */}
+              <span class="back-label-long">Back to design</span>
+              <span class="back-label-short">Design</span>
             </Button>
           </div>
           <Show when={plan().pages.length > 0}>

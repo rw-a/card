@@ -113,3 +113,27 @@ test('zoom out, the zoom level and zoom in stay together on narrow screens', asy
     expect(Math.max(...tops) - Math.min(...tops), `${width}px`).toBeLessThan(2);
   }
 });
+
+test('small screens still fit with the wider font CI machines use, and the sheet navigation stays beside "Back to design"', async ({ page }) => {
+  await loadSample(page);
+  // Ubuntu (and so CI) falls back to DejaVu Sans, which is wider than most desktop fonts.
+  await page.addStyleTag({ content: `html, body, body * { font-family: 'DejaVu Sans', sans-serif !important; }` });
+  for (const width of [320, 375]) {
+    await page.setViewportSize({ width, height: 667 });
+    for (const tab of ['data', 'design', 'print'] as const) {
+      await page.getByTestId(`tab-${tab}`).click();
+      await expectNoOverflow(page, `${width}px ${tab} with DejaVu Sans`);
+    }
+    const back = (await page.getByRole('button', { name: 'Back to design', exact: true }).boundingBox())!;
+    const label = (await page.getByTestId('sheet-label').boundingBox())!;
+    expect(label.y, `${width}px: sheet navigation on the same line`).toBeLessThan(back.y + back.height);
+    expect(label.x).toBeGreaterThan(back.x + back.width);
+  }
+  // The short label is only used at 360px and narrower
+  const back = page.getByRole('button', { name: 'Back to design', exact: true });
+  await expect(back.locator('.back-label-long')).toBeVisible(); // 375px
+  await expect(back.locator('.back-label-short')).toBeHidden();
+  await page.setViewportSize({ width: 320, height: 667 });
+  await expect(back.locator('.back-label-short')).toBeVisible();
+  await expect(back.locator('.back-label-long')).toBeHidden();
+});

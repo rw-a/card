@@ -572,6 +572,17 @@ input.color {
 .back-actions {
   margin-top: -2px;
 }
+.back-label-short {
+  display: none;
+}
+@media (max-width: 360px) {
+  .back-label-long {
+    display: none;
+  }
+  .back-label-short {
+    display: inline;
+  }
+}
 .sheet-nav {
   display: flex;
   align-items: center;
@@ -1371,9 +1382,12 @@ input.color {
   .toolbar > .row:first-child {
     flex: 1 1 100%;
   }
-  /* Print: sheet navigation stays on the same line as "Back to design", on the right. */
+  /*
+   * Print: sheet navigation stays on the same line as "Back to design", on the right.
+   * Wrapping is still allowed so an unusually wide font moves it down instead of off-screen.
+   */
   .print-center .toolbar {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     align-items: flex-start;
   }
   .print-center .toolbar > .row:first-child {
@@ -1385,6 +1399,7 @@ input.color {
   .print-center .toolbar > .row:last-child {
     justify-content: flex-end;
     gap: 6px;
+    margin-left: auto;
   }
   .sheet-nav {
     gap: 4px;
