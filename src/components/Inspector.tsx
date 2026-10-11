@@ -399,8 +399,8 @@ function TextInspector(props: { el: TextElement }) {
           </Field>
         </div>
         <div class="row gap wrap font-fit-options">
-          <Toggle checked={props.el.shrinkToFit} label="Shrink to fit" onChange={(v) => set((el) => (el.shrinkToFit = v), true)} />
           <Toggle checked={props.el.wrap} label="Wrap lines" onChange={(v) => set((el) => (el.wrap = v), true)} />
+          <Toggle checked={props.el.shrinkToFit} label="Shrink to fit" onChange={(v) => set((el) => (el.shrinkToFit = v), true)} />
         </div>
         <div class="grid2">
           <Field label="Align">
