@@ -202,6 +202,9 @@ test('on phones the app name only shows on the Data page, below the tabs, and pa
       if (tab === 'data') {
         await expect(pageBrand).toBeVisible();
         await expect(pageBrand).toHaveText('Lanyard Maker');
+        // Sized as the page title: larger than the tabs' text, with a matching icon
+        await expect(pageBrand).toHaveCSS('font-size', '20px');
+        await expect(pageBrand.locator('svg')).toHaveCSS('width', '26px');
         const brand = (await pageBrand.boundingBox())!;
         expect(brand.y).toBeGreaterThanOrEqual(header.y + header.height); // below the tabs…
         expect(brand.y - (header.y + header.height)).toBeLessThan(24); // …close to them

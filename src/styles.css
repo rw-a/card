@@ -1418,10 +1418,17 @@ input.color {
     justify-self: center;
     font-size: 13px;
   }
+  /* On the Data page the name works as the page title. */
   .brand-page {
     display: flex;
     justify-content: center;
-    margin: 0 0 10px;
+    gap: 10px;
+    margin: 4px 0 14px;
+    font-size: 20px;
+  }
+  .brand.brand-page svg {
+    width: 26px;
+    height: 26px;
   }
   .brand svg {
     width: 18px;
