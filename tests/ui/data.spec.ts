@@ -95,6 +95,28 @@ test.describe('Data tab', () => {
     await expect(page.getByText(/pasted\.csv — 2 People, 2 Columns/)).toBeVisible();
   });
 
+  test('removing the data also removes the warnings about it', async ({ page }) => {
+    await openApp(page);
+    await pasteCsv(page, 'A,B\n1,2,3\n4,5\n');
+    await expect(page.locator('.notice.warn')).toContainText(/Row 2 has 3 cells/);
+    await page.getByRole('button', { name: 'Remove data' }).click();
+    await expect(page.locator('.notice.warn')).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Drop Your CSV Here' })).toBeVisible();
+  });
+
+  test('a file that cannot be used at all keeps its warning, and a good file replaces it', async ({ page }) => {
+    await openApp(page);
+    await page
+      .locator('input[type=file]')
+      .first()
+      .setInputFiles({ name: 'empty.csv', mimeType: 'text/csv', buffer: Buffer.from('') });
+    await expect(page.locator('.notice.warn')).toContainText('The file is empty.');
+    await expect(page.getByRole('button', { name: 'Remove data' })).toHaveCount(0); // nothing was loaded
+    await pasteCsv(page, 'Name,Cabin\nAda,3\n');
+    await expect(page.locator('.notice.warn')).toHaveCount(0);
+    await expect(page.getByText(/pasted\.csv — 1 Person, 2 Columns/)).toBeVisible();
+  });
+
   test('flags template fields that are missing from the loaded CSV', async ({ page }) => {
     await openApp(page);
     // First load: the pristine template rebinds to these headers.

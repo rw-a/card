@@ -29,6 +29,12 @@ export default function DataPanel() {
     }
   }
 
+  /** The warnings describe the loaded file, so they go with it. */
+  function removeData() {
+    setDataset(null);
+    setWarnings([]);
+  }
+
   const stats = createMemo(() => {
     const ds = dataset();
     if (!ds) return [];
@@ -134,7 +140,7 @@ export default function DataPanel() {
                 title={`${ds().fileName} — ${ds().rows.length} ${ds().rows.length === 1 ? 'Person' : 'People'}, ${ds().headers.length} Columns`}
                 actions={
                   <div class="row gap">
-                    <Button variant="outline" size="md" class="btn" onClick={() => setDataset(null)}>
+                    <Button variant="outline" size="md" class="btn" onClick={removeData}>
                       Remove data
                     </Button>
                     <Button size="md" class="btn primary" onClick={() => setTab('design')}>
