@@ -28,13 +28,11 @@ and never uploaded.
 - **Cards from a spreadsheet** — load a CSV file (or paste one) and place any column on the card.
 - **Visual designer** — text, shapes and pictures that you drag, resize and style on a card shown
   at its real proportions, with undo, layers, snapping and keyboard shortcuts.
-- **Text that fits** — text shrinks automatically to fit its box, down to a minimum size you set.
 - **Fit check** — previews built from the shortest, median and longest values in your data show
   straight away if any text is cut off.
-- **Colour per field value** — colour a band or text box by a column, e.g. one colour per group.
-- **Picture per field value** — show a different picture depending on a column, e.g. an animal per
-  group. Upload all pictures at once; they are matched to values by file name.
-- **Pictures from your data** — show a photo or logo whose web address is stored in a column.
+- **Colours and pictures per field value** — colour a band or text box, or show a different
+  picture, depending on a column, e.g. one colour and an animal per group. Upload all pictures at
+  once; they are matched to values by file name.
 - **Double-sided cards** — the same design on both sides, or a different front and back.
 - **Print-ready sheets** — choose the paper size and margins; cards are laid out with crop marks
   and can be printed or saved as a PDF. Print copies, or just some rows for reprints.
