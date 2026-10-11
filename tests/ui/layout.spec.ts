@@ -44,7 +44,7 @@ test.describe('Top bar', () => {
   test('the tabs are centred on every tab and with or without data', async ({ page }) => {
     await openApp(page);
     expect(Math.abs(await tabsOffCentre(page))).toBeLessThanOrEqual(1);
-    await page.getByRole('button', { name: 'Load sample roster' }).click();
+    await page.getByRole('button', { name: 'Load sample data' }).click();
     for (const tab of ['data', 'design', 'print'] as const) {
       await goTo(page, tab);
       expect(Math.abs(await tabsOffCentre(page)), tab).toBeLessThanOrEqual(1);

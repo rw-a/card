@@ -38,7 +38,7 @@ test.describe('Persistence', () => {
     await openApp(page);
     await expect(page.getByTestId('tab-data')).toHaveAttribute('aria-selected', 'true');
     expect(await storedGet(page, 'dataset')).toBeUndefined();
-    expect(await page.evaluate(() => window.lanyardMaker.storage.name())).toBe('indexeddb');
+    expect(await page.evaluate(() => window.cardMaker.storage.name())).toBe('indexeddb');
   });
 
   test('loading a CSV before touching the design rebinds the starter template to its headers', async ({ page }) => {
@@ -108,7 +108,7 @@ test.describe('Persistence', () => {
     await loadSample(page);
     await selectLayer(page, 'Name');
     await page.keyboard.press('ArrowRight');
-    await page.evaluate(() => window.lanyardMaker.flushPersist());
+    await page.evaluate(() => window.cardMaker.flushPersist());
     expect(await storedGet(page, 'template')).toEqual({ version: 99 });
   });
 
@@ -211,7 +211,7 @@ test.describe('Persistence – storage backend', () => {
       .setInputFiles({ name: 'big.csv', mimeType: 'text/csv', buffer: Buffer.from(lines.join('\n')) });
     await expect(page.getByText(/big\.csv — 50000 People/)).toBeVisible({ timeout: 20_000 });
     await expect.poll(async () => (await storedGet<Dataset>(page, 'dataset'))?.rows.length, { timeout: 20_000 }).toBe(50_000);
-    const json = await page.evaluate(() => JSON.stringify(window.lanyardMaker.getDataset()).length);
+    const json = await page.evaluate(() => JSON.stringify(window.cardMaker.getDataset()).length);
     expect(json).toBeGreaterThan(5 * 1024 * 1024);
     await page.reload();
     await expect(page.getByTestId('tab-data')).toContainText('50000', { timeout: 20_000 });

@@ -201,7 +201,7 @@ test('on phones the app name only shows on the Data page, below the tabs, and pa
       expect(header.height, `${width}px ${tab}: the top bar is just the tabs`).toBeLessThanOrEqual(50);
       if (tab === 'data') {
         await expect(pageBrand).toBeVisible();
-        await expect(pageBrand).toHaveText('Lanyard Maker');
+        await expect(pageBrand).toHaveText('Card Maker');
         // Sized as the page title: larger than the tabs' text, with a matching icon
         await expect(pageBrand).toHaveCSS('font-size', '20px');
         await expect(pageBrand.locator('svg')).toHaveCSS('width', '26px');

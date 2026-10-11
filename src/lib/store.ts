@@ -47,7 +47,7 @@ export function downloadUnreadableTemplate() {
   const blob = new Blob([JSON.stringify(unreadableTemplate, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'unreadable-template.lanyard.json';
+  a.download = 'unreadable-template.card-maker.json';
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
@@ -453,10 +453,10 @@ export function clearBack() {
   });
 }
 
-// Small debugging/testing hook: `lanyardMaker.getTemplate()` in the console.
+// Small debugging/testing hook: `cardMaker.getTemplate()` in the console.
 declare global {
   interface Window {
-    lanyardMaker: {
+    cardMaker: {
       getTemplate: () => Template;
       getDataset: () => Dataset | null;
       getEditor: () => { activeSide: SideId; selectedId: string | null };
@@ -472,7 +472,7 @@ declare global {
     };
   }
 }
-window.lanyardMaker = {
+window.cardMaker = {
   getTemplate: () => structuredClone(unwrap(template)),
   getDataset: () => dataset(),
   getEditor: () => ({ activeSide: activeSide(), selectedId: selectedId() }),

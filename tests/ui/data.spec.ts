@@ -10,9 +10,9 @@ test.describe('Data tab', () => {
     await expect(page.getByText(/start designing without data/)).toBeVisible();
   });
 
-  test('loads the sample roster and shows the preview table and stats', async ({ page }) => {
+  test('loads the sample data and shows the preview table and stats', async ({ page }) => {
     await openApp(page);
-    await page.getByRole('button', { name: 'Load sample roster' }).click();
+    await page.getByRole('button', { name: 'Load sample data' }).click();
 
     await expect(page.getByText(/sample-camp-roster\.csv — 25 People, 6 Columns/i)).toBeVisible();
     await expect(page.getByTestId('tab-data')).toContainText('25');
@@ -134,7 +134,7 @@ test.describe('Data tab', () => {
 
   test('removing the data returns to the empty state', async ({ page }) => {
     await openApp(page);
-    await page.getByRole('button', { name: 'Load sample roster' }).click();
+    await page.getByRole('button', { name: 'Load sample data' }).click();
     await page.getByRole('button', { name: 'Remove data' }).click();
     await expect(page.getByText(/start designing without data/)).toBeVisible();
     await expect(page.getByTestId('tab-data')).not.toContainText('25');

@@ -375,7 +375,7 @@ test.describe('Sides: interactions that span a switch', () => {
     await releaseRead(page, 0); // …and the stale first one must not replace it
     await page.waitForTimeout(200);
     await expect(canvasImage(page)).toHaveAttribute('src', second.dataUrl);
-    await page.evaluate(() => window.lanyardMaker.flushPersist());
+    await page.evaluate(() => window.cardMaker.flushPersist());
     expect(Object.values((await getTemplate(page)).assets)).toEqual([second.dataUrl]);
   });
 
@@ -389,7 +389,7 @@ test.describe('Sides: interactions that span a switch', () => {
     await page.keyboard.press('Escape');
     await page
       .locator('input[type=file][accept*="json"]')
-      .setInputFiles({ name: 'x.lanyard.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(exported)) });
+      .setInputFiles({ name: 'x.card-maker.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(exported)) });
     await expect(layer(page, 'Image')).toHaveCount(1);
     await releaseRead(page, 0);
     await page.waitForTimeout(200);
@@ -475,7 +475,7 @@ test.describe('Sides: files', () => {
     await expect(canvasImage(page)).toHaveAttribute('src', pic.dataUrl);
     await deselect(page);
     await setSides(page, 'single'); // the picture now lives only on a saved, unused back
-    await page.evaluate(() => window.lanyardMaker.flushPersist()); // saving prunes unused pictures…
+    await page.evaluate(() => window.cardMaker.flushPersist()); // saving prunes unused pictures…
     expect(Object.values((await getStoredTemplate(page)).assets)).toEqual([pic.dataUrl]); // …but not this one
     await goTo(page, 'print');
     await page.locator('[data-field="Copies of Each Badge"] input').fill('2');
@@ -497,13 +497,13 @@ test.describe('Sides: files', () => {
     expect((await getTemplate(page)).sides.back).toBeNull();
     await page
       .locator('input[type=file][accept*="json"]')
-      .setInputFiles({ name: 'x.lanyard.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(json)) });
+      .setInputFiles({ name: 'x.card-maker.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(json)) });
     await expect.poll(async () => (await getTemplate(page)).sides.back).not.toBeNull();
     expect(await getTemplate(page)).toEqual(json);
     await setSides(page, 'different');
     await expect(canvasImage(page)).toHaveAttribute('src', pic.dataUrl);
     // …and after a save and reload
-    await page.evaluate(() => window.lanyardMaker.flushPersist());
+    await page.evaluate(() => window.cardMaker.flushPersist());
     await page.reload();
     await expect(canvasSide(page)).toHaveText('Front');
     const reloaded = await getTemplate(page);

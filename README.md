@@ -1,6 +1,6 @@
-# Lanyard Maker
+# Card Maker
 
-A static web app for making lanyard badges / name cards for a camp (or any event).
+A static web app for making name cards and badges – for lanyards, desks or doors – for a camp (or any event).
 Upload a CSV, design one badge template with drag-and-drop, and print every card
 onto cut-ready sheets — straight from the browser, with nothing sent to a server.
 
@@ -30,7 +30,8 @@ Built with [SolidJS](https://www.solidjs.com/), [Park UI](https://park-ui.com/),
 Badges can be **one-sided or double-sided** (see [Front and back](#front-and-back)).
 
 The template and roster are saved in your browser automatically and the template can be
-exported/imported as JSON. Exports use the filename `template.lanyard.json`.
+exported/imported as JSON. Exports use the filename `template.card-maker.json`; files exported as
+`template.lanyard.json` by earlier versions import the same way.
 
 ## Where your work is saved
 
@@ -153,9 +154,9 @@ npm run test:report               # open the HTML report of the last run
 `playwright.config.ts` builds the app and serves it with `vite preview` automatically. If you
 already have a Chromium you want to use, point `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` at it.
 
-A hook is available in the browser console for debugging: `lanyardMaker.getTemplate()` returns
-the current (version 3) template, `lanyardMaker.getEditor()` the side being edited and the
-selection, `lanyardMaker.getDataset()` the loaded CSV, and `lanyardMaker.storage` reads and
+A hook is available in the browser console for debugging: `cardMaker.getTemplate()` returns
+the current (version 3) template, `cardMaker.getEditor()` the side being edited and the
+selection, `cardMaker.getDataset()` the loaded CSV, and `cardMaker.storage` reads and
 writes the underlying IndexedDB store.
 
 ## CSV tips

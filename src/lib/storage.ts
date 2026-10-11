@@ -20,7 +20,10 @@ export const KEYS = {
   recovery: 'template-recovery',
 } as const;
 
-/** Keys used by versions that stored everything in localStorage; migrated on first load. */
+/**
+ * Keys used by versions that stored everything in localStorage; migrated on first load.
+ * (The app was called Lanyard Maker then; these names must match what it wrote.)
+ */
 export const LEGACY_LOCAL_KEYS = {
   template: 'lanyard-maker:template:v1',
   dataset: 'lanyard-maker:dataset:v1',
@@ -38,6 +41,8 @@ export interface KeyValueStorage {
 // ---------------------------------------------------------------------------
 // IndexedDB
 // ---------------------------------------------------------------------------
+// Still named after the app's old name (Lanyard Maker): renaming the database would leave
+// everything people have saved behind in the old one.
 const DB_NAME = 'lanyard-maker';
 const DB_VERSION = 1;
 const STORE = 'kv';
@@ -117,7 +122,7 @@ class IndexedDbStorage implements KeyValueStorage {
 // ---------------------------------------------------------------------------
 // localStorage fallback (JSON strings under a prefix)
 // ---------------------------------------------------------------------------
-const LS_PREFIX = 'lanyard-maker:kv:';
+const LS_PREFIX = 'lanyard-maker:kv:'; // kept for the same reason as DB_NAME
 
 class LocalStorageStorage implements KeyValueStorage {
   readonly name = 'localstorage' as const;

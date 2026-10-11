@@ -3,7 +3,7 @@ import type { KEYS, KeyValueStorage } from '../src/lib/storage';
 
 declare global {
   interface Window {
-    lanyardMaker: {
+    cardMaker: {
       getTemplate: () => Template;
       getDataset: () => Dataset | null;
       getEditor: () => { activeSide: SideId; selectedId: string | null };

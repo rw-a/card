@@ -21,10 +21,10 @@ export async function goTo(page: Page, tab: 'data' | 'design' | 'print') {
   await expect(page.getByTestId(`tab-${tab}`)).toHaveAttribute('aria-selected', 'true');
 }
 
-/** Load the built-in sample roster (25 people) and land on the Design tab. */
+/** Load the built-in sample data (25 people) and land on the Design tab. */
 export async function loadSample(page: Page) {
   await openApp(page);
-  await page.getByRole('button', { name: 'Load sample roster' }).click();
+  await page.getByRole('button', { name: 'Load sample data' }).click();
   await expect(page.getByTestId('tab-data')).toContainText('25');
   await goTo(page, 'design');
   await expect(canvasCard(page)).toBeVisible();
@@ -129,24 +129,24 @@ export async function previewText(page: Page, variant: Variant, elementName: str
 
 /** The live template as the app sees it right now (not the debounced stored copy). */
 export function getTemplate(page: Page): Promise<Template> {
-  return page.evaluate(() => window.lanyardMaker.getTemplate());
+  return page.evaluate(() => window.cardMaker.getTemplate());
 }
 
 /** The side the editor shows and the selected layer. */
 export function getEditor(page: Page): Promise<{ activeSide: SideId; selectedId: string | null }> {
-  return page.evaluate(() => window.lanyardMaker.getEditor());
+  return page.evaluate(() => window.cardMaker.getEditor());
 }
 
 type StoredKey = 'template' | 'dataset' | 'template-pristine' | 'template-recovery';
 
 /** Read a value straight from the app's persistent storage (IndexedDB, or its fallback). */
 export function storedGet<T = unknown>(page: Page, key: StoredKey): Promise<T | undefined> {
-  return page.evaluate((k) => window.lanyardMaker.storage.get(k), key) as Promise<T | undefined>;
+  return page.evaluate((k) => window.cardMaker.storage.get(k), key) as Promise<T | undefined>;
 }
 
 /** Write a value straight into the app's persistent storage (takes effect on the next load). */
 export function storedSet(page: Page, key: StoredKey, value: unknown): Promise<void> {
-  return page.evaluate(({ k, v }) => window.lanyardMaker.storage.set(k, v), { k: key, v: value });
+  return page.evaluate(({ k, v }) => window.cardMaker.storage.set(k, v), { k: key, v: value });
 }
 
 /** The template as persisted (debounced ~300 ms after an edit). */

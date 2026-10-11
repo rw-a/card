@@ -172,11 +172,11 @@ export function parseTemplate(raw: unknown): ParseResult {
     return {
       ok: false,
       reason: 'future',
-      error: `This template was saved by a newer version of Lanyard Maker (format ${version}); this version reads up to format ${TEMPLATE_VERSION}.`,
+      error: `This template was saved by a newer version of Card Maker (format ${version}); this version reads up to format ${TEMPLATE_VERSION}.`,
     };
   }
   if (version !== 1 && version !== 2 && version !== TEMPLATE_VERSION) {
-    return { ok: false, reason: 'invalid', error: 'This is not a Lanyard Maker template (unknown format).' };
+    return { ok: false, reason: 'invalid', error: 'This is not a Card Maker template (unknown format).' };
   }
   try {
     const t = version === TEMPLATE_VERSION ? fromV3(raw) : fromLegacy(raw);

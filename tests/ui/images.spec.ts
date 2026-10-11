@@ -458,7 +458,7 @@ test.describe('Picture file names', () => {
     await page.keyboard.press('Control+z'); // …so put it back for the rest of the test
     await expect(names(page)).toHaveText(['Camp Background.png', 'logo-2026.png']);
 
-    await page.evaluate(() => window.lanyardMaker.flushPersist());
+    await page.evaluate(() => window.cardMaker.flushPersist());
     await page.reload();
     await expect(page.getByTestId('tab-design')).toHaveAttribute('aria-selected', 'true');
     await expect(names(page)).toHaveText(['Camp Background.png', 'logo-2026.png']);
@@ -471,7 +471,7 @@ test.describe('Picture file names', () => {
     await expect(page.getByTestId('stored-picture')).toHaveCount(0);
     await page
       .locator('input[type=file][accept*="json"]')
-      .setInputFiles({ name: 'x.lanyard.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(json)) });
+      .setInputFiles({ name: 'x.card-maker.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(json)) });
     await expect(names(page)).toHaveText(['Camp Background.png', 'logo-2026.png']);
   });
 

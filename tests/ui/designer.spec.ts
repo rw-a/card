@@ -551,7 +551,7 @@ test.describe('Designer – inspector', () => {
     await expect(page.locator('[data-field="Name"]')).toHaveCount(0);
     await expect(page.locator('.side.right').getByRole('button', { name: 'Export JSON' })).toBeVisible();
     const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export JSON' }).click()]);
-    expect(download.suggestedFilename()).toBe('template.lanyard.json');
+    expect(download.suggestedFilename()).toBe('template.card-maker.json');
     const text = await (await download.createReadStream()).toArray().then((chunks) => Buffer.concat(chunks).toString());
     const json = JSON.parse(text);
     expect(json).not.toHaveProperty('name');
@@ -565,7 +565,7 @@ test.describe('Designer – inspector', () => {
     t.card.width = 86;
     t.sides.front.elements = t.sides.front.elements.slice(0, 2);
     await page.locator('input[type=file][accept*="json"]').setInputFiles({
-      name: 'x.lanyard.json',
+      name: 'x.card-maker.json',
       mimeType: 'application/json',
       buffer: Buffer.from(JSON.stringify(t)),
     });

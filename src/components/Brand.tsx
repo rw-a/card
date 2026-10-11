@@ -8,7 +8,7 @@ export default function Brand(props: { class: string; testId?: string }) {
   return (
     <div class={`brand ${props.class}`} data-testid={props.testId}>
       <IdCard size={22} aria-hidden="true" />
-      <span>Lanyard Maker</span>
+      <span>Card Maker</span>
     </div>
   );
 }
