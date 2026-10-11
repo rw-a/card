@@ -4,7 +4,7 @@ Card Maker turns a spreadsheet of people into printed name cards. Load a CSV fil
 card, and print a card for every row — ready to cut out and put into lanyard holders, on desks or
 on doors.
 
-**[Open Card Maker](https://rw-a.github.io/lanyard/)** — it runs in your browser; nothing to install.
+**[Open Card Maker](https://rw-a.github.io/card/)** — it runs in your browser; nothing to install.
 
 ![The card designer with the sample data loaded](docs/screenshots/design.png)
 
