@@ -177,6 +177,14 @@ code {
 .help-body .help-shortcuts {
   width: 100%;
 }
+/* Park tables keep cells on one line; here they wrap so the dialog never scrolls sideways on phones. */
+.help-body .help-shortcuts td {
+  white-space: normal;
+  vertical-align: top;
+}
+.help-body .help-shortcuts td:first-child {
+  padding-right: 12px;
+}
 .help-body .csv-help-steps {
   max-width: none;
   margin: 0 0 6px;

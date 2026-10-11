@@ -243,13 +243,19 @@ test('on phones Help is in the top-right corner, clear of the tabs, and its inst
     expect(help.y, `${width}px`).toBeLessThanOrEqual(8); // top
     await expectNoOverflow(page, `${width}px top bar with Help`);
   }
-  await page.getByRole('button', { name: 'Help' }).tap();
   const dialog = page.getByRole('dialog', { name: 'How to use Card Maker' });
-  await expect(dialog).toBeVisible();
-  const box = (await dialog.boundingBox())!;
-  expect(box.x).toBeGreaterThanOrEqual(0);
-  expect(box.x + box.width).toBeLessThanOrEqual(375);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
-  await dialog.getByRole('button', { name: 'Close help' }).tap();
-  await expect(dialog).toBeHidden();
+  for (const width of [320, 375]) {
+    await page.setViewportSize({ width, height: 667 });
+    await page.getByRole('button', { name: 'Help' }).tap();
+    await expect(dialog).toBeVisible();
+    const box = (await dialog.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(width);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+    // Nothing inside is wider than the dialog, so it never scrolls sideways (e.g. the shortcuts table)
+    const body = dialog.locator('.help-body');
+    expect(await body.evaluate((el) => el.scrollWidth - el.clientWidth), `${width}px`).toBeLessThanOrEqual(0);
+    await dialog.getByRole('button', { name: 'Close help' }).tap();
+    await expect(dialog).toBeHidden();
+  }
 });
