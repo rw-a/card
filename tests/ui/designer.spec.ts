@@ -262,10 +262,14 @@ test.describe('Designer – layers panel', () => {
     const names = () => page.locator('[data-testid="layer"]').evaluateAll((els) => els.map((e) => e.getAttribute('data-name')));
     expect(await names()).toEqual(['Group', 'Group band', 'Accommodation', 'Accommodation label', 'Name', 'Camp title', 'Header band']);
     await layer(page, 'Name').hover();
-    await layer(page, 'Name').getByTitle(/Move up/).click();
+    await layer(page, 'Name')
+      .getByTitle(/Move up/)
+      .click();
     expect(await names()).toEqual(['Group', 'Group band', 'Accommodation', 'Name', 'Accommodation label', 'Camp title', 'Header band']);
     const t = await getTemplate(page);
-    expect(t.sides.front.elements.map((e) => e.name).indexOf('Name')).toBeGreaterThan(t.sides.front.elements.map((e) => e.name).indexOf('Accommodation label'));
+    expect(t.sides.front.elements.map((e) => e.name).indexOf('Name')).toBeGreaterThan(
+      t.sides.front.elements.map((e) => e.name).indexOf('Accommodation label'),
+    );
   });
 
   test('adds a CSV field, static text, a shape and an image', async ({ page }) => {
@@ -490,7 +494,9 @@ test.describe('Designer – inspector', () => {
     const headingWeight = await settings.getByTestId('background-heading').evaluate((e) => +getComputedStyle(e).fontWeight);
     const labelWeight = await settings.locator('[data-field="Background Colour"] .field-label').evaluate((e) => +getComputedStyle(e).fontWeight);
     expect(headingWeight).toBeGreaterThan(labelWeight);
-    expect((await settings.getByTestId('background-heading').boundingBox())!.y).toBeLessThan((await settings.locator('[data-field="Background Colour"]').boundingBox())!.y);
+    expect((await settings.getByTestId('background-heading').boundingBox())!.y).toBeLessThan(
+      (await settings.locator('[data-field="Background Colour"]').boundingBox())!.y,
+    );
     await expect(page.locator('.side.right').getByRole('heading', { name: 'Card Background' })).toHaveCount(0);
     const radiusBox = (await settings.locator('[data-field="Corner Radius"]').boundingBox())!;
     const backgroundFieldBox = (await settings.locator('[data-field="Background Colour"]').boundingBox())!;
@@ -555,7 +561,7 @@ test.describe('Designer – inspector', () => {
 
   test('import JSON replaces the design and discards an old card name', async ({ page }) => {
     await loadSample(page);
-    const t = { ...await getTemplate(page), name: 'Imported' };
+    const t = { ...(await getTemplate(page)), name: 'Imported' };
     t.card.width = 86;
     t.sides.front.elements = t.sides.front.elements.slice(0, 2);
     await page.locator('input[type=file][accept*="json"]').setInputFiles({

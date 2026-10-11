@@ -1,7 +1,19 @@
 import { Check, ChevronRight, TriangleAlert } from 'lucide-solid';
 import { For, Show, createEffect, createMemo, createSignal, on, onCleanup, onMount } from 'solid-js';
 import { PX_PER_MM, elementLabel } from '../lib/template';
-import { activeColumns, activeDesign, activeSide, extremes, ignoreEmpty, previewSource, rows, setIgnoreEmpty, setPreviewSource, setSelectedId, template } from '../lib/store';
+import {
+  activeColumns,
+  activeDesign,
+  activeSide,
+  extremes,
+  ignoreEmpty,
+  previewSource,
+  rows,
+  setIgnoreEmpty,
+  setPreviewSource,
+  setSelectedId,
+  template,
+} from '../lib/store';
 import { editingLabel } from '../lib/sides';
 import { fitProblem, type FitStatus, type Row, type SideId } from '../lib/types';
 import Card from './Card';
@@ -80,7 +92,9 @@ export default function Previews() {
     <section class="previews">
       <header class="previews-head">
         <div class="previews-title">
-          <Heading as="h3" textStyle="md" color="fg.default" data-testid="fit-check-title">Fit Check{template.sidedness === 'single' ? '' : ` — ${sideLabel()}`}</Heading>
+          <Heading as="h3" textStyle="md" color="fg.default" data-testid="fit-check-title">
+            Fit Check{template.sidedness === 'single' ? '' : ` — ${sideLabel()}`}
+          </Heading>
         </div>
         <p class="muted small">
           <Show when={hasData()} fallback={<>Load a CSV to see your layout filled with the shortest, median and longest values of each field.</>}>
@@ -162,7 +176,11 @@ function PreviewCard(props: { side: SideId; variant: Variant; zoom: number; enab
   const [rawFitMap, setFitMap] = createSignal<Map<string, FitStatus>>(new Map());
   /** Results for layers that still exist and are shown on this side. */
   const fitMap = createMemo(() => {
-    const visible = new Set(activeDesign().elements.filter((e) => !e.hidden).map((e) => e.id));
+    const visible = new Set(
+      activeDesign()
+        .elements.filter((e) => !e.hidden)
+        .map((e) => e.id),
+    );
     return new Map([...rawFitMap()].filter(([id]) => visible.has(id)));
   });
   const names = (pick: (s: FitStatus) => boolean) =>
@@ -178,9 +196,14 @@ function PreviewCard(props: { side: SideId; variant: Variant; zoom: number; enab
   const h = () => template.card.height * PX_PER_MM * props.zoom;
 
   return (
-    <SurfaceCard.Root class={`preview${hasProblem() ? ' has-overflow' : ''}${!props.enabled ? ' disabled' : ''}`} data-testid={`preview-${props.variant.key}`}>
+    <SurfaceCard.Root
+      class={`preview${hasProblem() ? ' has-overflow' : ''}${!props.enabled ? ' disabled' : ''}`}
+      data-testid={`preview-${props.variant.key}`}
+    >
       <header>
-        <Heading as="h4" textStyle="sm" color="fg.default">{props.variant.title}</Heading>
+        <Heading as="h4" textStyle="sm" color="fg.default">
+          {props.variant.title}
+        </Heading>
         <span class="muted small">{props.variant.blurb}</span>
       </header>
       <div
@@ -212,13 +235,24 @@ function PreviewCard(props: { side: SideId; variant: Variant; zoom: number; enab
       </div>
       <footer class="small" data-testid="preview-status">
         <Show when={props.enabled}>
-          <Show when={hasProblem()} fallback={<span class="ok"><Check size={14} class="preview-status-icon" aria-hidden="true" /> Everything fits</span>}>
+          <Show
+            when={hasProblem()}
+            fallback={
+              <span class="ok">
+                <Check size={14} class="preview-status-icon" aria-hidden="true" /> Everything fits
+              </span>
+            }
+          >
             <span class="warn-text">
-              <Show when={overflowNames().length > 0}><TriangleAlert size={14} class="preview-status-icon" aria-hidden="true" /> Overflows: {overflowNames().join(', ')}</Show>
+              <Show when={overflowNames().length > 0}>
+                <TriangleAlert size={14} class="preview-status-icon" aria-hidden="true" /> Overflows: {overflowNames().join(', ')}
+              </Show>
               <Show when={overflowNames().length > 0 && clippedNames().length > 0}>
                 <br />
               </Show>
-              <Show when={clippedNames().length > 0}><TriangleAlert size={14} class="preview-status-icon" aria-hidden="true" /> Cut off by card edge: {clippedNames().join(', ')}</Show>
+              <Show when={clippedNames().length > 0}>
+                <TriangleAlert size={14} class="preview-status-icon" aria-hidden="true" /> Cut off by card edge: {clippedNames().join(', ')}
+              </Show>
             </span>
           </Show>
         </Show>

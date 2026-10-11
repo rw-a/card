@@ -1,5 +1,14 @@
 import { expect, test } from '@playwright/test';
-import { cropMarks, expandBadges, pagesOfSheet, planPrint, printMode, reflectForDuplex, slotPosition, type PrintPlan } from '../../src/lib/print-plan';
+import {
+  cropMarks,
+  expandBadges,
+  pagesOfSheet,
+  planPrint,
+  printMode,
+  reflectForDuplex,
+  slotPosition,
+  type PrintPlan,
+} from '../../src/lib/print-plan';
 import { computeSheetLayout, defaultTemplate } from '../../src/lib/template';
 import type { PrintMethod, Sidedness, Template } from '../../src/lib/types';
 
@@ -150,7 +159,10 @@ test.describe('separate cutouts', () => {
     const t = template({ sidedness: 'different', method: 'cutouts' });
     const plan = planPrint(t, range(1));
     const L = computeSheetLayout(t);
-    expect(plan.pages[0].placements.map((p) => ({ x: p.x, y: p.y }))).toEqual([slotPosition(L, t.card, t.page, 0), slotPosition(L, t.card, t.page, 1)]);
+    expect(plan.pages[0].placements.map((p) => ({ x: p.x, y: p.y }))).toEqual([
+      slotPosition(L, t.card, t.page, 0),
+      slotPosition(L, t.card, t.page, 1),
+    ]);
   });
 
   test('with one slot per sheet each badge takes two consecutive sheets', () => {
@@ -180,7 +192,12 @@ test.describe('duplex sheets', () => {
       page.placements.find((p) => Math.abs(p.x - x) < 1e-9 && Math.abs(p.y - y) < 1e-9)?.instanceIndex;
     const col = (c: number) => L.offsetX + c * (t.card.width + t.page.gapX);
     const row = (r: number) => L.offsetY + r * (t.card.height + t.page.gapY);
-    expect([at(front, col(0), row(0)), at(front, col(1), row(0)), at(front, col(0), row(1)), at(front, col(1), row(1))]).toEqual([0, 1, 2, undefined]);
+    expect([at(front, col(0), row(0)), at(front, col(1), row(0)), at(front, col(0), row(1)), at(front, col(1), row(1))]).toEqual([
+      0,
+      1,
+      2,
+      undefined,
+    ]);
     expect([at(back, col(0), row(0)), at(back, col(1), row(0)), at(back, col(0), row(1)), at(back, col(1), row(1))]).toEqual([1, 0, undefined, 2]);
     expect(front.guides).toBe(true);
     expect(back.guides).toBe(false); // cutting guides on the front only

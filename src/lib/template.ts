@@ -134,8 +134,7 @@ export function newImageElement(partial: Partial<ImageElement> = {}): ImageEleme
 export function defaultTemplate(headers: string[] = []): Template {
   const W = 100;
   const H = 140;
-  const find = (...cands: string[]) =>
-    headers.find((h) => cands.some((c) => h.toLowerCase().replace(/[^a-z]/g, '') === c)) ?? null;
+  const find = (...cands: string[]) => headers.find((h) => cands.some((c) => h.toLowerCase().replace(/[^a-z]/g, '') === c)) ?? null;
   const nameCol = find('name', 'fullname') ?? headers[0] ?? 'Name';
   const firstCol = find('firstname', 'first', 'givenname');
   const lastCol = find('lastname', 'last', 'surname', 'familyname');
@@ -343,8 +342,22 @@ export function computeSheetLayout(template: Pick<Template, 'card' | 'page'>): S
 
 /** Deterministic, pleasant palette for auto-assigning colours to distinct values. */
 export const PALETTE = [
-  '#1f6feb', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316',
-  '#84cc16', '#06b6d4', '#a855f7', '#e11d48', '#0ea5e9', '#eab308', '#22c55e', '#6366f1',
+  '#1f6feb',
+  '#f59e0b',
+  '#10b981',
+  '#ef4444',
+  '#8b5cf6',
+  '#ec4899',
+  '#14b8a6',
+  '#f97316',
+  '#84cc16',
+  '#06b6d4',
+  '#a855f7',
+  '#e11d48',
+  '#0ea5e9',
+  '#eab308',
+  '#22c55e',
+  '#6366f1',
 ];
 
 export function distinctValues(rows: Row[], column: string, limit = 60): string[] {
@@ -542,7 +555,11 @@ export function imageRefsIn(t: Pick<Template, 'sides'>): string[] {
 
 /** Ids of stored pictures nothing refers to any more. */
 export function unusedAssetIds(t: Pick<Template, 'sides' | 'assets'>): string[] {
-  const used = new Set(imageRefsIn(t).filter(isAssetRef).map((r) => r.slice(ASSET_PREFIX.length)));
+  const used = new Set(
+    imageRefsIn(t)
+      .filter(isAssetRef)
+      .map((r) => r.slice(ASSET_PREFIX.length)),
+  );
   return Object.keys(t.assets).filter((id) => !used.has(id));
 }
 

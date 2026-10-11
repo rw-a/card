@@ -14,13 +14,13 @@ Built with [SolidJS](https://www.solidjs.com/), [Park UI](https://park-ui.com/),
 2. **Design** – a canvas showing one badge at real proportions. Add text boxes bound to CSV
    columns (`{{Name}}`, `Cabin {{Accommodation}}`…), fixed text, colour bands and a logo.
    Drag to move, drag handles to resize, set fonts, alignment, colours, padding, borders.
-   Text boxes **shrink to fit** down to a minimum size you choose. Anything that *still*
+   Text boxes **shrink to fit** down to a minimum size you choose. Anything that _still_
    doesn't fit its box, or that would be **cut off by the edge of the card**, is outlined in
    red and named in the fit check. A shape or text box can be **coloured by a field**
    (e.g. one colour per cabin), and an image can show a **different picture per value of a
    field** — a bear for the Bears, a lion for the Lions. Name your files after the values
    (`bears.png`, `lion.jpg`) and upload them all at once; a fallback picture covers the rest.
-3. **Fit check** – three live previews under the canvas, each built from *every field's*
+3. **Fit check** – three live previews under the canvas, each built from _every field's_
    shortest, median and longest value across the whole CSV. The "Longest" card is the
    worst case for your layout; "Shortest" shows that short names still look balanced.
 4. **Print** – pick paper size (A4, A3, Letter, Legal or custom), orientation, margins and
@@ -98,7 +98,7 @@ the sidebar sections use its accordion component.
 ## Deploy to GitHub Pages (automatic)
 
 1. Create a GitHub repository and push this folder to its `main` branch.
-2. In the repository go to **Settings → Pages** and under *Build and deployment* set
+2. In the repository go to **Settings → Pages** and under _Build and deployment_ set
    **Source** to **GitHub Actions**.
 3. That's it. Every push to `main` runs `.github/workflows/deploy.yml`, which builds the app
    and publishes it to `https://<your-user>.github.io/<repo>/`. The first run takes a minute
@@ -156,25 +156,25 @@ writes the underlying IndexedDB store.
 - Put one person per row. Column names become the fields you can place on the badge.
 - Empty cells are fine. By default they are ignored when working out the shortest value
   (switch off "Ignore empty cells" under the fit-check cards to see how a blank field looks).
-- Excel: *File → Save As → CSV UTF-8*. Google Sheets: *File → Download → CSV*.
+- Excel: _File → Save As → CSV UTF-8_. Google Sheets: _File → Download → CSV_.
 - If a column holds image URLs (e.g. photos), an Image element can read its source from it
   ("Picture source → Image URL stored in a field").
 
 ## Pictures per group
 
-Add an **Image** element and set *Picture source* to **Different picture per value of a
+Add an **Image** element and set _Picture source_ to **Different picture per value of a
 field**, then pick the field (e.g. `Group`). Every distinct value gets a row where you can
 upload a picture, or use **Upload for all values…** and select all your files at once: a
 file called `bears.png`, `Bear.jpg` or `bears (2).png` is matched to the value "Bears"
 (case, spaces, punctuation and a trailing "s" are ignored). Values without a picture show
-the optional *Anything else* fallback, or nothing at all when printed.
+the optional _Anything else_ fallback, or nothing at all when printed.
 
 Uploaded pictures are stored inside the template, scaled down to at most 1200 px on the long
 side (SVGs are kept as-is), and **deduplicated by content**: the same picture used for several
 groups, on several image elements or as the card background is stored once, however many
 times it appears (`template.assets` holds each picture under a content hash and elements refer
 to it as `asset:<id>`). Pictures nothing refers to any more are dropped at the next save. The
-*Pictures Stored* section of the inspector lists each stored picture with a preview, the file name
+_Pictures Stored_ section of the inspector lists each stored picture with a preview, the file name
 it was uploaded with and its size (the same picture uploaded again under another name keeps its
 first name; pictures from templates saved before names were kept show as "Picture 1", "Picture 2"…).
 Templates exported by older versions (pictures inline) import fine and are converted on the way in.
@@ -184,13 +184,13 @@ once, so 100 badges with the same logo cost about as much as one.
 
 ## Front and back
 
-Choose **Sides** in *Card Settings*:
+Choose **Sides** in _Card Settings_:
 
-| Sides | What you edit | What each badge gets |
-| --- | --- | --- |
-| One Sided | the front | a front |
-| Double-Sided — Same on Both Sides | one design, labelled *Front & Back* | that design on both faces |
-| Double-Sided — Different on Each Side | a front and a back, switched with **Front / Back** above the canvas | its own front and back |
+| Sides                                 | What you edit                                                       | What each badge gets      |
+| ------------------------------------- | ------------------------------------------------------------------- | ------------------------- |
+| One Sided                             | the front                                                           | a front                   |
+| Double-Sided — Same on Both Sides     | one design, labelled _Front & Back_                                 | that design on both faces |
+| Double-Sided — Different on Each Side | a front and a back, switched with **Front / Back** above the canvas | its own front and back    |
 
 - Size and corner radius are shared; each independently designed side has its own background
   colour, background picture and layers. Both faces of a badge use the same CSV row.
@@ -199,7 +199,7 @@ Choose **Sides** in *Card Settings*:
   the back has content and both can be undone.
 - Switching to one-sided or same-on-both-sides keeps a separate back saved (with its pictures);
   choosing different sides again brings it back exactly as it was.
-- The canvas, layers, inspector, background controls and *Fit Check* all follow the side being
+- The canvas, layers, inspector, background controls and _Fit Check_ all follow the side being
   edited. A fit check result covers that side and that preview only, so switch sides to check both.
 - Undo/redo works across sides and shows the side whose content changed.
 
@@ -209,11 +209,11 @@ Choose **Sides** in *Card Settings*:
 with two printed faces. The summary shows people, badges, printed faces, physical sheets and,
 for duplex, PDF pages. For 25 people, one copy, four card slots per sheet:
 
-| Output | Badges | Printed faces | Sheets | PDF pages |
-| --- | ---: | ---: | ---: | ---: |
-| One Sided | 25 | 25 | 7 | 7 |
-| Double-sided, Separate Cutouts | 25 | 50 | 13 | 13 |
-| Double-sided, Duplex Sheets | 25 | 50 | 7 | 14 |
+| Output                         | Badges | Printed faces | Sheets | PDF pages |
+| ------------------------------ | -----: | ------------: | -----: | --------: |
+| One Sided                      |     25 |            25 |      7 |         7 |
+| Double-sided, Separate Cutouts |     25 |            50 |     13 |        13 |
+| Double-sided, Duplex Sheets    |     25 |            50 |      7 |        14 |
 
 Double-sided designs offer two **printing methods** on the Print tab (one-sided designs always
 print ordinary sheets):
@@ -222,7 +222,7 @@ print ordinary sheets):
   both upright, on one side of the paper. Print **one-sided**, cut out each pair and place them
   back to back in the holder. With room for only one card per sheet, the front and back go on
   two consecutive sheets.
-- **Duplex Sheets** – PDF pages alternate *sheet 1 front, sheet 1 back, sheet 2 front…*. The
+- **Duplex Sheets** – PDF pages alternate _sheet 1 front, sheet 1 back, sheet 2 front…_. The
   backs are laid out for turning the sheet over **from left to right** (around its vertical axis):
   print double-sided with **flip on long edge** for portrait paper or **flip on short edge** for
   landscape (square paper counts as portrait). Each back is placed at its front's position
@@ -260,7 +260,7 @@ overwritten.
 ## Printing tips
 
 - In the print dialog set **scale to 100%** (not "fit to page"), **margins to None**, and
-  turn on **Background graphics** so colour bands print. Choose *Save as PDF* to get a file.
+  turn on **Background graphics** so colour bands print. Choose _Save as PDF_ to get a file.
 - Paper size in the dialog should match the one chosen in the app; the page is sized via
   `@page` so most browsers pick it up automatically.
 - A 100 × 140 mm card (the default) fits a standard A6 lanyard holder and goes four to an

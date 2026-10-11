@@ -193,8 +193,4 @@ export function fitProblem(s: FitStatus | undefined): boolean {
 }
 
 /** Which data a card preview is rendered with. */
-export type PreviewSource =
-  | { type: 'row'; index: number }
-  | { type: 'shortest' }
-  | { type: 'median' }
-  | { type: 'longest' };
+export type PreviewSource = { type: 'row'; index: number } | { type: 'shortest' } | { type: 'median' } | { type: 'longest' };

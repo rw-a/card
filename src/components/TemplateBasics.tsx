@@ -104,12 +104,28 @@ export default function TemplateBasics() {
       </Field>
       <div class="card-dimensions">
         <Field label="Width">
-          <NumberField value={template.card.width} min={20} max={400} unit="mm" onCommit={commit} onInput={(v) => updateTemplate((t) => (t.card.width = v), false)} />
+          <NumberField
+            value={template.card.width}
+            min={20}
+            max={400}
+            unit="mm"
+            onCommit={commit}
+            onInput={(v) => updateTemplate((t) => (t.card.width = v), false)}
+          />
         </Field>
         <Field label="Height">
-          <NumberField value={template.card.height} min={20} max={400} unit="mm" onCommit={commit} onInput={(v) => updateTemplate((t) => (t.card.height = v), false)} />
+          <NumberField
+            value={template.card.height}
+            min={20}
+            max={400}
+            unit="mm"
+            onCommit={commit}
+            onInput={(v) => updateTemplate((t) => (t.card.height = v), false)}
+          />
         </Field>
-        <IconButton variant="outline" size="xs"
+        <IconButton
+          variant="outline"
+          size="xs"
           type="button"
           class="btn icon"
           aria-label="Swap orientation"
@@ -126,7 +142,14 @@ export default function TemplateBasics() {
         </IconButton>
       </div>
       <Field label="Corner Radius">
-        <NumberField value={template.card.borderRadius} min={0} max={30} unit="mm" onCommit={commit} onInput={(v) => updateTemplate((t) => (t.card.borderRadius = v), false)} />
+        <NumberField
+          value={template.card.borderRadius}
+          min={0}
+          max={30}
+          unit="mm"
+          onCommit={commit}
+          onInput={(v) => updateTemplate((t) => (t.card.borderRadius = v), false)}
+        />
       </Field>
       <div class="card-background" data-side={activeSide()}>
         {/* Each side has its own background; name the side only when there are two to choose from. */}

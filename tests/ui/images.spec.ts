@@ -442,7 +442,9 @@ test.describe('Picture file names', () => {
 
   test('uploaded pictures are listed under their file names and keep them through reload and export/import', async ({ page }) => {
     await loadSample(page);
-    await page.locator('[data-field="Background Image"] input[type=file]').setInputFiles(await makePng(page, 'Camp Background.png', '#dddddd', 200, 280));
+    await page
+      .locator('[data-field="Background Image"] input[type=file]')
+      .setInputFiles(await makePng(page, 'Camp Background.png', '#dddddd', 200, 280));
     await addImageElement(page);
     const logo = await makePng(page, 'logo-2026.png', '#ff0000');
     await page.getByTestId('image-upload').setInputFiles(logo);
@@ -467,7 +469,9 @@ test.describe('Picture file names', () => {
     await page.getByRole('button', { name: 'Reset to default' }).click();
     await page.getByRole('button', { name: 'Really reset?' }).click();
     await expect(page.getByTestId('stored-picture')).toHaveCount(0);
-    await page.locator('input[type=file][accept*="json"]').setInputFiles({ name: 'x.lanyard.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(json)) });
+    await page
+      .locator('input[type=file][accept*="json"]')
+      .setInputFiles({ name: 'x.lanyard.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(json)) });
     await expect(names(page)).toHaveText(['Camp Background.png', 'logo-2026.png']);
   });
 
@@ -494,10 +498,24 @@ test.describe('Picture file names', () => {
       version: 2,
       card: { width: t.card.width, height: t.card.height, borderRadius: t.card.borderRadius, bg: '#ffffff', bgImage: 'asset:red' },
       page: t.page,
-      elements: [{ ...(await getElement(page, 'Name')), id: 'img1', name: 'Logo', kind: 'image', src: 'asset:blue', srcColumn: null, imageRule: null, fit: 'contain', borderRadius: 0 }],
+      elements: [
+        {
+          ...(await getElement(page, 'Name')),
+          id: 'img1',
+          name: 'Logo',
+          kind: 'image',
+          src: 'asset:blue',
+          srcColumn: null,
+          imageRule: null,
+          fit: 'contain',
+          borderRadius: 0,
+        },
+      ],
       assets: { red: red.dataUrl, blue: blue.dataUrl },
     };
-    await page.locator('input[type=file][accept*="json"]').setInputFiles({ name: 'old.lanyard.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(legacy)) });
+    await page
+      .locator('input[type=file][accept*="json"]')
+      .setInputFiles({ name: 'old.lanyard.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(legacy)) });
     await expect(names(page)).toHaveText(['Picture 1', 'Picture 2']);
     await expect(names(page).first()).toHaveClass(/unnamed/);
     // A new upload gets its name and is listed first

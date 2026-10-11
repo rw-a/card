@@ -1,6 +1,19 @@
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { LEGACY_LOCAL_KEYS, canvasTexts, getElement, goTo, loadSample, openApp, pasteCsv, selectLayer, setField, storedGet, storedSet, waitForElement } from './helpers';
+import {
+  LEGACY_LOCAL_KEYS,
+  canvasTexts,
+  getElement,
+  goTo,
+  loadSample,
+  openApp,
+  pasteCsv,
+  selectLayer,
+  setField,
+  storedGet,
+  storedSet,
+  waitForElement,
+} from './helpers';
 import type { Dataset, Template } from '../../src/lib/types';
 
 /** Templates exactly as earlier versions of the app saved them. */
@@ -75,7 +88,7 @@ test.describe('Persistence', () => {
     await storedSet(page, 'template', future);
     await page.reload();
     await expect(page.getByTestId('startup-notice')).toContainText('newer version');
-    expect((await storedGet<{ template: unknown; reason: string }>(page, 'template-recovery'))).toMatchObject({ template: future, reason: 'future' });
+    expect(await storedGet<{ template: unknown; reason: string }>(page, 'template-recovery')).toMatchObject({ template: future, reason: 'future' });
     expect(await storedGet(page, 'template')).toEqual(future); // untouched until the user changes something
   });
 
@@ -152,7 +165,11 @@ test.describe('Persistence – storage backend', () => {
         ({ keys, legacy }) => {
           localStorage.setItem(keys.template, JSON.stringify(legacy));
           localStorage.setItem(keys.pristine, '1');
-          const ds = { fileName: 'old.csv', headers: ['Name', 'Accommodation', 'Group'], rows: [{ Name: 'Ada', Accommodation: 'Cabin 1', Group: 'Red' }] };
+          const ds = {
+            fileName: 'old.csv',
+            headers: ['Name', 'Accommodation', 'Group'],
+            rows: [{ Name: 'Ada', Accommodation: 'Cabin 1', Group: 'Red' }],
+          };
           localStorage.setItem(keys.dataset, JSON.stringify(ds));
         },
         { keys: LEGACY_LOCAL_KEYS, legacy },
@@ -188,7 +205,10 @@ test.describe('Persistence – storage backend', () => {
     for (let i = 0; i < 50_000; i++) {
       lines.push(`Person ${String(i).padStart(5, '0')},Cabin ${i % 40},Group ${i % 7},Contact ${i} 555-${String(i % 10_000).padStart(4, '0')}`);
     }
-    await page.locator('input[type=file]').first().setInputFiles({ name: 'big.csv', mimeType: 'text/csv', buffer: Buffer.from(lines.join('\n')) });
+    await page
+      .locator('input[type=file]')
+      .first()
+      .setInputFiles({ name: 'big.csv', mimeType: 'text/csv', buffer: Buffer.from(lines.join('\n')) });
     await expect(page.getByText(/big\.csv — 50000 People/)).toBeVisible({ timeout: 20_000 });
     await expect.poll(async () => (await storedGet<Dataset>(page, 'dataset'))?.rows.length, { timeout: 20_000 }).toBe(50_000);
     const json = await page.evaluate(() => JSON.stringify(window.lanyardMaker.getDataset()).length);
@@ -197,5 +217,4 @@ test.describe('Persistence – storage backend', () => {
     await expect(page.getByTestId('tab-data')).toContainText('50000', { timeout: 20_000 });
     await expect(page.getByTestId('persist-warning')).toHaveCount(0);
   });
-
 });

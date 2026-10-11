@@ -91,10 +91,7 @@ export async function prepareForPrint(root: HTMLElement, timeoutMs = 20_000): Pr
     await nextFrame();
     await nextFrame();
     await document.fonts?.ready;
-    const results = await Promise.all([
-      ...[...root.querySelectorAll('img')].map(imageReady),
-      ...backgroundUrls(root).map(loadUrl),
-    ]);
+    const results = await Promise.all([...[...root.querySelectorAll('img')].map(imageReady), ...backgroundUrls(root).map(loadUrl)]);
     await textSettled(root);
     return results.filter((ok) => !ok).length;
   })();

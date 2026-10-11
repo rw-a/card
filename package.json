@@ -1,8 +1,8 @@
 {
   "name": "lanyard-maker",
   "version": "1.0.0",
-  "description": "Static SolidJS app: upload a CSV, design a badge template, generate printable lanyard cards.",
   "private": true,
+  "description": "Static SolidJS app: upload a CSV, design a badge template, generate printable lanyard cards.",
   "type": "module",
   "scripts": {
     "prepare": "panda codegen",

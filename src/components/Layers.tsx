@@ -85,15 +85,36 @@ export default function Layers(props: Props) {
               onSelectionComplete={() => (document.activeElement as HTMLElement)?.blur()}
             />
           </Show>
-          <IconButton variant="outline" size="xs" class="btn add-icon" aria-label="Add text" title="Add text" onClick={() => add(newTextElement({ content: 'Static text', w: template.card.width - 12, x: 6, y: 10, h: 10 }))}>
+          <IconButton
+            variant="outline"
+            size="xs"
+            class="btn add-icon"
+            aria-label="Add text"
+            title="Add text"
+            onClick={() => add(newTextElement({ content: 'Static text', w: template.card.width - 12, x: 6, y: 10, h: 10 }))}
+          >
             <IconPlus aria-hidden="true" size={12} />
             <IconText aria-hidden="true" size={20} />
           </IconButton>
-          <IconButton variant="outline" size="xs" class="btn add-icon" aria-label="Add shape" title="Add shape" onClick={() => add(newRectElement({ x: 0, y: template.card.height - 20, w: template.card.width, h: 20 }))}>
+          <IconButton
+            variant="outline"
+            size="xs"
+            class="btn add-icon"
+            aria-label="Add shape"
+            title="Add shape"
+            onClick={() => add(newRectElement({ x: 0, y: template.card.height - 20, w: template.card.width, h: 20 }))}
+          >
             <IconPlus aria-hidden="true" size={12} />
             <IconShape aria-hidden="true" size={20} />
           </IconButton>
-          <IconButton variant="outline" size="xs" class="btn add-icon" aria-label="Add image or logo" title="Add image or logo" onClick={() => add(newImageElement({ x: 6, y: 6, w: 25, h: 25 }))}>
+          <IconButton
+            variant="outline"
+            size="xs"
+            class="btn add-icon"
+            aria-label="Add image or logo"
+            title="Add image or logo"
+            onClick={() => add(newImageElement({ x: 6, y: 6, w: 25, h: 25 }))}
+          >
             <IconPlus aria-hidden="true" size={12} />
             <IconImage aria-hidden="true" size={20} />
           </IconButton>
@@ -142,19 +163,37 @@ export default function Layers(props: Props) {
                 </span>
                 {/* Overlaid on the right of the row and faded in on hover/focus: never changes the row's size. */}
                 <span class="layer-actions">
-                  <IconButton variant="plain" size="2xs" type="button" class="icon-btn" title="Move up (towards the front)" aria-label={`Move ${el.name} up`} onClick={(e) => {
+                  <IconButton
+                    variant="plain"
+                    size="2xs"
+                    type="button"
+                    class="icon-btn"
+                    title="Move up (towards the front)"
+                    aria-label={`Move ${el.name} up`}
+                    onClick={(e) => {
                       e.stopPropagation();
                       move(el.id, +1);
-                    }}>
+                    }}
+                  >
                     <IconArrowUp aria-hidden="true" />
                   </IconButton>
-                  <IconButton variant="plain" size="2xs" type="button" class="icon-btn" title="Move down (towards the back)" aria-label={`Move ${el.name} down`} onClick={(e) => {
+                  <IconButton
+                    variant="plain"
+                    size="2xs"
+                    type="button"
+                    class="icon-btn"
+                    title="Move down (towards the back)"
+                    aria-label={`Move ${el.name} down`}
+                    onClick={(e) => {
                       e.stopPropagation();
                       move(el.id, -1);
-                    }}>
+                    }}
+                  >
                     <IconArrowDown aria-hidden="true" />
                   </IconButton>
-                  <IconButton variant="plain" size="2xs"
+                  <IconButton
+                    variant="plain"
+                    size="2xs"
                     type="button"
                     class="icon-btn"
                     aria-pressed={el.locked}
@@ -169,7 +208,9 @@ export default function Layers(props: Props) {
                       <IconLock aria-hidden="true" />
                     </Show>
                   </IconButton>
-                  <IconButton variant="plain" size="2xs"
+                  <IconButton
+                    variant="plain"
+                    size="2xs"
                     type="button"
                     class="icon-btn"
                     aria-pressed={el.hidden}

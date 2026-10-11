@@ -297,7 +297,10 @@ test.describe('Sides: interactions that span a switch', () => {
     await expect.poll(async () => (await getElement(page, 'Name', 'back')).x).toBeGreaterThan(backName.x);
     const movedX = (await getElement(page, 'Name', 'back')).x;
     // Switch with the button still held
-    await page.getByTestId('side-switcher').locator('label', { hasText: 'Front' }).evaluate((el) => (el as HTMLElement).click());
+    await page
+      .getByTestId('side-switcher')
+      .locator('label', { hasText: 'Front' })
+      .evaluate((el) => (el as HTMLElement).click());
     await expect(canvasSide(page)).toHaveText('Front');
     await page.mouse.move(box.x + box.width / 2 + 120, box.y + box.height / 2 + 40, { steps: 4 });
     await page.mouse.up();
@@ -384,7 +387,9 @@ test.describe('Sides: interactions that span a switch', () => {
     await page.getByTestId('image-upload').setInputFiles(await makePng(page, 'late.png', '#abcdef'));
     await expect.poll(() => heldReads(page)).toBe(1);
     await page.keyboard.press('Escape');
-    await page.locator('input[type=file][accept*="json"]').setInputFiles({ name: 'x.lanyard.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(exported)) });
+    await page
+      .locator('input[type=file][accept*="json"]')
+      .setInputFiles({ name: 'x.lanyard.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(exported)) });
     await expect(layer(page, 'Image')).toHaveCount(1);
     await releaseRead(page, 0);
     await page.waitForTimeout(200);
@@ -490,7 +495,9 @@ test.describe('Sides: files', () => {
     await page.getByRole('button', { name: 'Reset to default' }).click();
     await page.getByRole('button', { name: 'Really reset?' }).click();
     expect((await getTemplate(page)).sides.back).toBeNull();
-    await page.locator('input[type=file][accept*="json"]').setInputFiles({ name: 'x.lanyard.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(json)) });
+    await page
+      .locator('input[type=file][accept*="json"]')
+      .setInputFiles({ name: 'x.lanyard.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(json)) });
     await expect.poll(async () => (await getTemplate(page)).sides.back).not.toBeNull();
     expect(await getTemplate(page)).toEqual(json);
     await setSides(page, 'different');
@@ -516,9 +523,14 @@ test.describe('Sides: files', () => {
       messages.push(d.message());
       void d.dismiss();
     });
-    const bad = [{ version: 3, sidedness: 'different', card: { width: 100, height: 140 }, sides: { front: { elements: [] }, back: null }, page: {} }, { version: 7 }];
+    const bad = [
+      { version: 3, sidedness: 'different', card: { width: 100, height: 140 }, sides: { front: { elements: [] }, back: null }, page: {} },
+      { version: 7 },
+    ];
     for (const [i, file] of bad.entries()) {
-      await page.locator('input[type=file][accept*="json"]').setInputFiles({ name: `bad${i}.json`, mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(file)) });
+      await page
+        .locator('input[type=file][accept*="json"]')
+        .setInputFiles({ name: `bad${i}.json`, mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(file)) });
       await expect.poll(() => messages.length).toBe(i + 1);
     }
     expect(messages[0]).toMatch(/Could not import template: .*back design/);

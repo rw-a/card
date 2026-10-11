@@ -33,8 +33,17 @@ export function Field(props: { label: string; labelContent?: JSX.Element; hint?:
   return (
     <ParkField.Root class={props.inline ? 'field inline' : 'field'} data-field={props.label}>
       <FieldLabel.Provider value={props.label}>
-        <Show when={props.block} fallback={<ParkField.Label class="field-label" aria-label={props.labelContent ? props.label : undefined}>{props.labelContent ?? props.label}</ParkField.Label>}>
-          <ParkField.Label as="span" class="field-label" aria-label={props.labelContent ? props.label : undefined}>{props.labelContent ?? props.label}</ParkField.Label>
+        <Show
+          when={props.block}
+          fallback={
+            <ParkField.Label class="field-label" aria-label={props.labelContent ? props.label : undefined}>
+              {props.labelContent ?? props.label}
+            </ParkField.Label>
+          }
+        >
+          <ParkField.Label as="span" class="field-label" aria-label={props.labelContent ? props.label : undefined}>
+            {props.labelContent ?? props.label}
+          </ParkField.Label>
         </Show>
         {props.children}
         <Show when={props.hint}>
@@ -74,7 +83,9 @@ export function NumberField(
         }}
         {...rest}
       />
-      <Show when={local.unit}><span class="unit">{local.unit}</span></Show>
+      <Show when={local.unit}>
+        <span class="unit">{local.unit}</span>
+      </Show>
     </span>
   );
 }
@@ -132,7 +143,15 @@ export function ColorField(props: { value: string; onInput: (v: string) => void;
 /** Best-effort conversion of a CSS colour to #rrggbb for the native colour input. */
 export function toHex(c: string): string {
   if (/^#[0-9a-f]{6}$/i.test(c)) return c;
-  if (/^#[0-9a-f]{3}$/i.test(c)) return '#' + c.slice(1).split('').map((ch) => ch + ch).join('');
+  if (/^#[0-9a-f]{3}$/i.test(c))
+    return (
+      '#' +
+      c
+        .slice(1)
+        .split('')
+        .map((ch) => ch + ch)
+        .join('')
+    );
   const ctx = document.createElement('canvas').getContext('2d');
   if (ctx) {
     ctx.fillStyle = '#000';
@@ -226,7 +245,9 @@ export function Toggle(props: { checked: boolean; onChange: (v: boolean) => void
   return (
     <Checkbox.Root checked={props.checked} onCheckedChange={(d) => props.onChange(d.checked === true)} title={props.title} size="sm">
       <Checkbox.HiddenInput />
-      <Checkbox.Control><Checkbox.Indicator /></Checkbox.Control>
+      <Checkbox.Control>
+        <Checkbox.Indicator />
+      </Checkbox.Control>
       <Checkbox.Label>{props.label}</Checkbox.Label>
     </Checkbox.Root>
   );
@@ -234,7 +255,13 @@ export function Toggle(props: { checked: boolean; onChange: (v: boolean) => void
 
 export function Switch(props: { checked: boolean; onChange: (v: boolean) => void; label: string; title?: string; 'data-testid'?: string }) {
   return (
-    <ParkSwitch.Root checked={props.checked} onCheckedChange={(d) => props.onChange(d.checked)} title={props.title} size="sm" data-testid={props['data-testid']}>
+    <ParkSwitch.Root
+      checked={props.checked}
+      onCheckedChange={(d) => props.onChange(d.checked)}
+      title={props.title}
+      size="sm"
+      data-testid={props['data-testid']}
+    >
       <ParkSwitch.HiddenInput role="switch" aria-checked={props.checked} />
       <ParkSwitch.Control class="switch-track" />
       <ParkSwitch.Label>{props.label}</ParkSwitch.Label>
@@ -263,11 +290,26 @@ export function SegButtons<T extends string>(props: {
   );
 }
 
-export function Notice(props: { warning?: boolean; children: JSX.Element; class?: string; style?: JSX.CSSProperties; role?: JSX.AriaAttributes['role']; 'data-testid'?: string }) {
+export function Notice(props: {
+  warning?: boolean;
+  children: JSX.Element;
+  class?: string;
+  style?: JSX.CSSProperties;
+  role?: JSX.AriaAttributes['role'];
+  'data-testid'?: string;
+}) {
   return (
-    <Alert.Root class={props.class} style={props.style} status={props.warning ? 'warning' : 'info'} role={props.role} data-testid={props['data-testid']}>
+    <Alert.Root
+      class={props.class}
+      style={props.style}
+      status={props.warning ? 'warning' : 'info'}
+      role={props.role}
+      data-testid={props['data-testid']}
+    >
       <Alert.Indicator />
-      <Alert.Content><Alert.Description>{props.children}</Alert.Description></Alert.Content>
+      <Alert.Content>
+        <Alert.Description>{props.children}</Alert.Description>
+      </Alert.Content>
     </Alert.Root>
   );
 }
@@ -275,12 +317,20 @@ export function Notice(props: { warning?: boolean; children: JSX.Element; class?
 export function Section(props: { title: string; children: JSX.Element; actions?: JSX.Element; collapsible?: boolean; 'data-testid'?: string }) {
   return (
     <section class="section" data-testid={props['data-testid']}>
-      <Show when={props.collapsible} fallback={
-        <>
-          <header class="section-head"><Heading as="h3" textStyle="md" color="fg.default">{props.title}</Heading>{props.actions}</header>
-          <div class="section-body">{props.children}</div>
-        </>
-      }>
+      <Show
+        when={props.collapsible}
+        fallback={
+          <>
+            <header class="section-head">
+              <Heading as="h3" textStyle="md" color="fg.default">
+                {props.title}
+              </Heading>
+              {props.actions}
+            </header>
+            <div class="section-body">{props.children}</div>
+          </>
+        }
+      >
         <Accordion.Root collapsible defaultValue={['section']}>
           <Accordion.Item value="section">
             <Heading as="h3" textStyle="md" color="fg.default">

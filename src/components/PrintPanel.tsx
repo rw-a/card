@@ -60,9 +60,7 @@ export default function PrintPanel() {
 
   const layout = createMemo(() => computeSheetLayout(template));
   /** How many cards the other orientation would fit — used for a hint. */
-  const altLayout = createMemo(() =>
-    computeSheetLayout({ ...template, page: { ...template.page, landscape: !template.page.landscape } }),
-  );
+  const altLayout = createMemo(() => computeSheetLayout({ ...template, page: { ...template.page, landscape: !template.page.landscape } }));
 
   /** Selected dataset rows (by index), in print order. */
   const rowIndexes = createMemo(() => parseRange(rangeSpec(), rows().length) ?? rows().map((_, i) => i));
@@ -195,10 +193,24 @@ export default function PrintPanel() {
           <Show when={template.page.preset === 'custom'}>
             <div class="grid2">
               <Field label="Width">
-                <NumberField value={template.page.width} min={50} max={2000} unit="mm" onCommit={commit} onInput={(v) => updateTemplate((t) => (t.page.width = v), false)} />
+                <NumberField
+                  value={template.page.width}
+                  min={50}
+                  max={2000}
+                  unit="mm"
+                  onCommit={commit}
+                  onInput={(v) => updateTemplate((t) => (t.page.width = v), false)}
+                />
               </Field>
               <Field label="Height">
-                <NumberField value={template.page.height} min={50} max={2000} unit="mm" onCommit={commit} onInput={(v) => updateTemplate((t) => (t.page.height = v), false)} />
+                <NumberField
+                  value={template.page.height}
+                  min={50}
+                  max={2000}
+                  unit="mm"
+                  onCommit={commit}
+                  onInput={(v) => updateTemplate((t) => (t.page.height = v), false)}
+                />
               </Field>
             </div>
           </Show>
@@ -207,27 +219,74 @@ export default function PrintPanel() {
           </div>
           <div class="grid3 paper-spacing-controls">
             <Field label="Margin">
-              <NumberField value={template.page.margin} min={0} max={50} unit="mm" aria-describedby="paper-margin-hint" onCommit={commit} onInput={(v) => updateTemplate((t) => (t.page.margin = v), false)} />
+              <NumberField
+                value={template.page.margin}
+                min={0}
+                max={50}
+                unit="mm"
+                aria-describedby="paper-margin-hint"
+                onCommit={commit}
+                onInput={(v) => updateTemplate((t) => (t.page.margin = v), false)}
+              />
             </Field>
-            <Field label="Horizontal Gap" labelContent={<>Gap <MoveHorizontal size={14} aria-hidden="true" /></>}>
-              <NumberField value={template.page.gapX} min={0} max={50} unit="mm" onCommit={commit} onInput={(v) => updateTemplate((t) => (t.page.gapX = v), false)} />
+            <Field
+              label="Horizontal Gap"
+              labelContent={
+                <>
+                  Gap <MoveHorizontal size={14} aria-hidden="true" />
+                </>
+              }
+            >
+              <NumberField
+                value={template.page.gapX}
+                min={0}
+                max={50}
+                unit="mm"
+                onCommit={commit}
+                onInput={(v) => updateTemplate((t) => (t.page.gapX = v), false)}
+              />
             </Field>
-            <Field label="Vertical Gap" labelContent={<>Gap <MoveVertical size={14} aria-hidden="true" /></>}>
-              <NumberField value={template.page.gapY} min={0} max={50} unit="mm" onCommit={commit} onInput={(v) => updateTemplate((t) => (t.page.gapY = v), false)} />
+            <Field
+              label="Vertical Gap"
+              labelContent={
+                <>
+                  Gap <MoveVertical size={14} aria-hidden="true" />
+                </>
+              }
+            >
+              <NumberField
+                value={template.page.gapY}
+                min={0}
+                max={50}
+                unit="mm"
+                onCommit={commit}
+                onInput={(v) => updateTemplate((t) => (t.page.gapY = v), false)}
+              />
             </Field>
-            <Text id="paper-margin-hint" textStyle="sm" color="fg.muted" gridColumn="1 / -1" margin="0">Most printers need ≥ 5 mm</Text>
+            <Text id="paper-margin-hint" textStyle="sm" color="fg.muted" gridColumn="1 / -1" margin="0">
+              Most printers need ≥ 5 mm
+            </Text>
           </div>
         </Section>
 
         <Show when={doubleSided()}>
           <Section title="Double-Sided Printing" data-testid="print-method" collapsible>
             <Field label="Printing method">
-              <Select value={template.page.printMethod} options={PRINT_METHOD_OPTIONS} onChange={(v) => updateTemplate((t) => (t.page.printMethod = v))} />
+              <Select
+                value={template.page.printMethod}
+                options={PRINT_METHOD_OPTIONS}
+                onChange={(v) => updateTemplate((t) => (t.page.printMethod = v))}
+              />
             </Field>
             <p class="muted small">
               <Show
                 when={duplex()}
-                fallback={<>Each badge's front is printed with its back right beside it, on one side of the paper. Cut both out and put them back to back in the holder.</>}
+                fallback={
+                  <>
+                    Each badge's front is printed with its back right beside it, on one side of the paper. Cut both out and put them back to back in
+                    the holder.
+                  </>
+                }
               >
                 Fronts are printed on one side of each sheet and backs on the other, so each cut-out card is already double-sided. Your printer must
                 print on both sides.
@@ -238,7 +297,11 @@ export default function PrintPanel() {
 
         <Section title="Cutting" collapsible>
           <Toggle checked={template.page.cutMarks} label="Crop marks in the margins" onChange={(v) => updateTemplate((t) => (t.page.cutMarks = v))} />
-          <Toggle checked={template.page.outline} label="Thin grey outline around each card" onChange={(v) => updateTemplate((t) => (t.page.outline = v))} />
+          <Toggle
+            checked={template.page.outline}
+            label="Thin grey outline around each card"
+            onChange={(v) => updateTemplate((t) => (t.page.outline = v))}
+          />
           <Show when={duplex()}>
             <p class="muted small">Cutting guides are printed on the front of each sheet only.</p>
           </Show>
@@ -249,7 +312,14 @@ export default function PrintPanel() {
             label="Copies of Each Badge"
             hint={doubleSided() ? 'Complete badges per person; each one has a front and a back.' : 'Complete badges per person.'}
           >
-            <NumberField value={template.page.copies} min={1} max={10} step={1} onCommit={commit} onInput={(v) => updateTemplate((t) => (t.page.copies = Math.max(1, Math.round(v))), false)} />
+            <NumberField
+              value={template.page.copies}
+              min={1}
+              max={10}
+              step={1}
+              onCommit={commit}
+              onInput={(v) => updateTemplate((t) => (t.page.copies = Math.max(1, Math.round(v))), false)}
+            />
           </Field>
           <Field label="Only these rows" hint={`Leave empty for everyone. Example: 1-10, 14, 20-22 (of ${rows().length})`}>
             <TextField value={rangeSpec()} onInput={setRangeSpec} placeholder="all" />
@@ -262,8 +332,8 @@ export default function PrintPanel() {
               when={!noFit()}
               fallback={
                 <Notice warning class="notice warn small">
-                  A {template.card.width} × {template.card.height} mm card does not fit on this paper with a {template.page.margin} mm margin. Reduce the
-                  margin, switch to landscape or choose a bigger sheet.
+                  A {template.card.width} × {template.card.height} mm card does not fit on this paper with a {template.page.margin} mm margin. Reduce
+                  the margin, switch to landscape or choose a bigger sheet.
                 </Notice>
               }
             >
@@ -273,11 +343,15 @@ export default function PrintPanel() {
                 {plan().badgeCount === 1 ? 'badge' : 'badges'}
                 <Show when={doubleSided()}>
                   <br />
-                  front and back = <strong data-testid="summary-faces">{plan().printedFaceCount}</strong> printed {plan().printedFaceCount === 1 ? 'face' : 'faces'}
+                  front and back = <strong data-testid="summary-faces">{plan().printedFaceCount}</strong> printed{' '}
+                  {plan().printedFaceCount === 1 ? 'face' : 'faces'}
                 </Show>
                 <br />
                 {layout().cols} × {layout().rows} = {layout().perPage} per sheet
-                <Show when={plan().mode === 'cutouts' && layout().perPage > 1}> ({plural(plan().badgesPerSheet, 'badge', 'badges')}, front beside back)</Show>
+                <Show when={plan().mode === 'cutouts' && layout().perPage > 1}>
+                  {' '}
+                  ({plural(plan().badgesPerSheet, 'badge', 'badges')}, front beside back)
+                </Show>
                 {' → '}
                 <strong data-testid="summary-sheets">{plan().physicalSheetCount}</strong> {plan().physicalSheetCount === 1 ? 'sheet' : 'sheets'}
                 <Show when={duplex()}>
@@ -290,7 +364,12 @@ export default function PrintPanel() {
                     <span>
                       {template.page.landscape ? 'Portrait' : 'Landscape'} would fit {altLayout().perPage} per sheet.
                     </span>
-                    <Button variant="outline" size="xs" class="btn small" onClick={() => updateTemplate((t) => (t.page.landscape = !t.page.landscape))}>
+                    <Button
+                      variant="outline"
+                      size="xs"
+                      class="btn small"
+                      onClick={() => updateTemplate((t) => (t.page.landscape = !t.page.landscape))}
+                    >
                       Switch
                     </Button>
                   </span>
@@ -346,7 +425,15 @@ export default function PrintPanel() {
             )}
           </Show>
           <div class="muted small print-instructions" data-testid="print-instructions">
-            <Show when={duplex()} fallback={<p>Print <strong>one-sided</strong>{doubleSided() ? ', then cut out each front and the back next to it.' : '.'}</p>}>
+            <Show
+              when={duplex()}
+              fallback={
+                <p>
+                  Print <strong>one-sided</strong>
+                  {doubleSided() ? ', then cut out each front and the back next to it.' : '.'}
+                </p>
+              }
+            >
               <p>
                 Print <strong>double-sided</strong> with{' '}
                 <strong data-testid="duplex-binding">{template.page.landscape ? 'flip on short edge' : 'flip on long edge'}</strong>
@@ -355,8 +442,8 @@ export default function PrintPanel() {
               </p>
             </Show>
             <p>
-              In the print dialog choose <strong>Save as PDF</strong> or your printer, set paper size to match, scale <strong>100%</strong> (not "fit to
-              page"), margins <strong>None</strong> and headers and footers off. Turn on "Background graphics" if colours are missing.
+              In the print dialog choose <strong>Save as PDF</strong> or your printer, set paper size to match, scale <strong>100%</strong> (not "fit
+              to page"), margins <strong>None</strong> and headers and footers off. Turn on "Background graphics" if colours are missing.
               <Show when={doubleSided()}> A saved PDF must later be printed with the same settings.</Show>
             </p>
           </div>
@@ -373,7 +460,14 @@ export default function PrintPanel() {
           <Show when={plan().pages.length > 0}>
             <div class="row gap">
               <span class="sheet-nav">
-                <IconButton variant="outline" size="xs" class="btn icon" aria-label="Previous sheet" disabled={sheetIndex() === 0} onClick={() => setSheetIndex((i) => i - 1)}>
+                <IconButton
+                  variant="outline"
+                  size="xs"
+                  class="btn icon"
+                  aria-label="Previous sheet"
+                  disabled={sheetIndex() === 0}
+                  onClick={() => setSheetIndex((i) => i - 1)}
+                >
                   <ChevronLeft aria-hidden="true" />
                 </IconButton>
                 <span class="small" data-testid="sheet-label">
@@ -395,7 +489,12 @@ export default function PrintPanel() {
                 </IconButton>
               </span>
               <Show when={duplex()}>
-                <SegmentGroup.Root size="xs" value={face()} onValueChange={(d) => d.value && setFace(d.value as 'front' | 'back')} aria-label="Side of the sheet">
+                <SegmentGroup.Root
+                  size="xs"
+                  value={face()}
+                  onValueChange={(d) => d.value && setFace(d.value as 'front' | 'back')}
+                  aria-label="Side of the sheet"
+                >
                   <SegmentGroup.Indicator />
                   <SegmentGroup.Item value="front">
                     <SegmentGroup.ItemText>Front</SegmentGroup.ItemText>
@@ -512,7 +611,18 @@ function Sheet(props: { template: Template; rows: Row[]; plan: PrintPlan; page: 
         >
           <Show when={props.template.page.outline}>
             <For each={props.page.placements}>
-              {(p) => <rect x={p.x} y={p.y} width={cw()} height={ch()} rx={props.template.card.borderRadius} fill="none" stroke="#9ca3af" stroke-width="0.15" />}
+              {(p) => (
+                <rect
+                  x={p.x}
+                  y={p.y}
+                  width={cw()}
+                  height={ch()}
+                  rx={props.template.card.borderRadius}
+                  fill="none"
+                  stroke="#9ca3af"
+                  stroke-width="0.15"
+                />
+              )}
             </For>
           </Show>
           <For each={marks()}>{(m) => <line x1={m.x1} y1={m.y1} x2={m.x2} y2={m.y2} stroke="#111" stroke-width="0.15" />}</For>

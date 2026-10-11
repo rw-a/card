@@ -1,6 +1,17 @@
 import { For, Show } from 'solid-js';
 import { IdCard } from 'lucide-solid';
-import { dataset, dismissStartupNotice, downloadUnreadableTemplate, persistError, rows, setTab, startupNotice, tab, template, type Tab } from '../lib/store';
+import {
+  dataset,
+  dismissStartupNotice,
+  downloadUnreadableTemplate,
+  persistError,
+  rows,
+  setTab,
+  startupNotice,
+  tab,
+  template,
+  type Tab,
+} from '../lib/store';
 import DataPanel from './DataPanel';
 import Designer from './Designer';
 import PrintPanel from './PrintPanel';
@@ -24,7 +35,18 @@ export default function App() {
           <For each={steps}>
             {(s) => (
               <Tabs.Trigger value={s.id} data-testid={`tab-${s.id}`}>
-                <Badge as="span" size="sm" variant={tab() === s.id ? 'solid' : 'surface'} colorPalette="gray" borderRadius="full" width="5" height="5" padding="0" justifyContent="center" flexShrink="0">
+                <Badge
+                  as="span"
+                  size="sm"
+                  variant={tab() === s.id ? 'solid' : 'surface'}
+                  colorPalette="gray"
+                  borderRadius="full"
+                  width="5"
+                  height="5"
+                  padding="0"
+                  justifyContent="center"
+                  flexShrink="0"
+                >
                   {s.n}
                 </Badge>
                 {s.label}
@@ -66,13 +88,19 @@ export default function App() {
       </Show>
 
       <Tabs.Content value="data" class="workspace">
-        <Show when={tab() === 'data'}><DataPanel /></Show>
+        <Show when={tab() === 'data'}>
+          <DataPanel />
+        </Show>
       </Tabs.Content>
       <Tabs.Content value="design" class="workspace">
-        <Show when={tab() === 'design'}><Designer /></Show>
+        <Show when={tab() === 'design'}>
+          <Designer />
+        </Show>
       </Tabs.Content>
       <Tabs.Content value="print" class="workspace">
-        <Show when={tab() === 'print'}><PrintPanel /></Show>
+        <Show when={tab() === 'print'}>
+          <PrintPanel />
+        </Show>
       </Tabs.Content>
     </Tabs.Root>
   );
