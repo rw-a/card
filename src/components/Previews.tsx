@@ -192,6 +192,11 @@ function PreviewCard(props: { side: SideId; variant: Variant; zoom: number; enab
   const overflowNames = createMemo(() => names((s) => s.overflow));
   const clippedNames = createMemo(() => names((s) => s.clipped && !s.overflow));
   const hasProblem = () => fitMap().size > 0;
+  /** Show the canvas with this preview's values (the same as choosing it under "Preview with"). */
+  const useTheseValues = () => {
+    setPreviewSource({ type: props.variant.key });
+    setSelectedId(null);
+  };
   const w = () => template.card.width * PX_PER_MM * props.zoom;
   const h = () => template.card.height * PX_PER_MM * props.zoom;
 
@@ -210,9 +215,16 @@ function PreviewCard(props: { side: SideId; variant: Variant; zoom: number; enab
         class="preview-stage"
         style={{ width: `${w()}px`, height: `${h()}px` }}
         title="Click to edit the design with these values"
-        onClick={() => {
-          setPreviewSource({ type: props.variant.key });
-          setSelectedId(null);
+        // A div with a button role rather than a <button>: a button's own font and alignment
+        // styles would cascade into the badge and change how its text measures.
+        role="button"
+        tabIndex={0}
+        aria-label={`Preview the design with the ${props.variant.title.toLowerCase()} values`}
+        onClick={useTheseValues}
+        onKeyDown={(e) => {
+          if (e.key !== 'Enter' && e.key !== ' ') return;
+          e.preventDefault(); // Space would otherwise scroll the page
+          useTheseValues();
         }}
       >
         <div style={{ transform: `scale(${props.zoom})`, 'transform-origin': '0 0' }}>

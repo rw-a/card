@@ -793,17 +793,32 @@ input.color {
 .layer {
   --row-bg: var(--panel);
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
   height: 32px;
-  padding: 0 8px 0 6px;
   border-radius: 6px;
-  cursor: pointer;
   background: var(--row-bg);
 }
 .layer:hover {
   --row-bg: var(--colors-gray-4);
+}
+/* The whole row (under the action icons) is the button that selects the layer. */
+.layer-select {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  padding: 0 8px 0 6px;
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.layer-select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 .layer.active {
   --row-bg: var(--accent-soft);
@@ -867,6 +882,7 @@ input.color {
 }
 .layer:hover .layer-actions,
 .layer:has(.icon-btn:focus-visible) .layer-actions,
+.layer:has(.layer-select:focus-visible) .layer-actions,
 .layer.active .layer-actions {
   opacity: 1;
 }
@@ -1074,6 +1090,10 @@ input.color {
   box-shadow: var(--shadow);
   cursor: pointer;
   flex: 0 0 auto;
+}
+.preview-stage:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 .preview-stage > div {
   position: absolute;

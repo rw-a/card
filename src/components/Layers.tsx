@@ -133,34 +133,41 @@ export default function Layers(props: Props) {
                 data-testid="layer"
                 data-name={el.name}
                 classList={{ active: selectedId() === el.id, hidden: el.hidden, locked: el.locked }}
-                onClick={() => setSelectedId(el.id)}
-                title={el.kind === 'text' ? el.content : el.name}
               >
-                <span class="layer-kind" title={KIND_NAME[el.kind]}>
-                  {(() => {
-                    const Icon = KIND_ICON[el.kind];
-                    return <Icon aria-hidden="true" size={14} />;
-                  })()}
-                </span>
-                <span class="layer-name">
-                  <span class="layer-label">{elementLabel(el)}</span>
-                  <Show when={describeFit(props.fitMap.get(el.id))}>
-                    {(d) => (
-                      <span class="overflow-dot" data-testid="layer-problem" title={`With the current preview data the ${d()}`}>
-                        <CircleAlert size={14} aria-hidden="true" />
-                      </span>
-                    )}
-                  </Show>
-                </span>
-                {/* Always-visible state markers, so a locked/hidden layer is recognisable without hovering. */}
-                <span class="layer-flags" aria-hidden="true">
-                  <Show when={el.locked}>
-                    <IconLock aria-hidden="true" size={13} />
-                  </Show>
-                  <Show when={el.hidden}>
-                    <IconEyeOff aria-hidden="true" size={13} />
-                  </Show>
-                </span>
+                {/* Selecting is a real button so it works from the keyboard; the action icons sit on top of it. */}
+                <button
+                  type="button"
+                  class="layer-select"
+                  aria-current={selectedId() === el.id ? 'true' : undefined}
+                  title={el.kind === 'text' ? el.content : el.name}
+                  onClick={() => setSelectedId(el.id)}
+                >
+                  <span class="layer-kind" title={KIND_NAME[el.kind]}>
+                    {(() => {
+                      const Icon = KIND_ICON[el.kind];
+                      return <Icon aria-hidden="true" size={14} />;
+                    })()}
+                  </span>
+                  <span class="layer-name">
+                    <span class="layer-label">{elementLabel(el)}</span>
+                    <Show when={describeFit(props.fitMap.get(el.id))}>
+                      {(d) => (
+                        <span class="overflow-dot" data-testid="layer-problem" title={`With the current preview data the ${d()}`}>
+                          <CircleAlert size={14} aria-hidden="true" />
+                        </span>
+                      )}
+                    </Show>
+                  </span>
+                  {/* Always-visible state markers, so a locked/hidden layer is recognisable without hovering. */}
+                  <span class="layer-flags" aria-hidden="true">
+                    <Show when={el.locked}>
+                      <IconLock aria-hidden="true" size={13} />
+                    </Show>
+                    <Show when={el.hidden}>
+                      <IconEyeOff aria-hidden="true" size={13} />
+                    </Show>
+                  </span>
+                </button>
                 {/* Overlaid on the right of the row and faded in on hover/focus: never changes the row's size. */}
                 <span class="layer-actions">
                   <IconButton
@@ -170,10 +177,7 @@ export default function Layers(props: Props) {
                     class="icon-btn"
                     title="Move up (towards the front)"
                     aria-label={`Move ${el.name} up`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      move(el.id, +1);
-                    }}
+                    onClick={() => move(el.id, +1)}
                   >
                     <IconArrowUp aria-hidden="true" />
                   </IconButton>
@@ -184,10 +188,7 @@ export default function Layers(props: Props) {
                     class="icon-btn"
                     title="Move down (towards the back)"
                     aria-label={`Move ${el.name} down`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      move(el.id, -1);
-                    }}
+                    onClick={() => move(el.id, -1)}
                   >
                     <IconArrowDown aria-hidden="true" />
                   </IconButton>
@@ -199,10 +200,7 @@ export default function Layers(props: Props) {
                     aria-pressed={el.locked}
                     title={el.locked ? 'Unlock' : 'Lock (prevents dragging)'}
                     aria-label={`${el.locked ? 'Unlock' : 'Lock'} ${el.name}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      updateElement(activeSide(), el.id, (x) => (x.locked = !x.locked));
-                    }}
+                    onClick={() => updateElement(activeSide(), el.id, (x) => (x.locked = !x.locked))}
                   >
                     <Show when={el.locked} fallback={<IconUnlock aria-hidden="true" />}>
                       <IconLock aria-hidden="true" />
@@ -216,10 +214,7 @@ export default function Layers(props: Props) {
                     aria-pressed={el.hidden}
                     title={el.hidden ? 'Show' : 'Hide'}
                     aria-label={`${el.hidden ? 'Show' : 'Hide'} ${el.name}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      updateElement(activeSide(), el.id, (x) => (x.hidden = !x.hidden));
-                    }}
+                    onClick={() => updateElement(activeSide(), el.id, (x) => (x.hidden = !x.hidden))}
                   >
                     <Show when={el.hidden} fallback={<IconEye aria-hidden="true" />}>
                       <IconEyeOff aria-hidden="true" />

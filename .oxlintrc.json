@@ -10,10 +10,6 @@
     "eslint/no-unassigned-vars": "off",
     // Labels wrap Park UI components that render the real control.
     "jsx-a11y/label-has-associated-control": ["error", { "controlComponents": ["Select", "Input", "Textarea"], "depth": 4 }],
-    // Mouse-only interactions are kept visible as warnings until they get keyboard support.
-    "jsx-a11y/click-events-have-key-events": "warn",
-    "jsx-a11y/no-static-element-interactions": "warn",
-    "jsx-a11y/no-noninteractive-element-interactions": "warn",
     // <output>/<fieldset> are not drop-in replacements for role="status"/role="group" here.
     "jsx-a11y/prefer-tag-over-role": "off",
     // The project targets ES2020, so toSorted()/toReversed() are not available.
