@@ -1128,21 +1128,48 @@ input.color {
   min-height: 0;
   overflow: auto;
 }
-.previews-head {
-  margin-bottom: 12px;
-}
-.previews-head p {
+.previews-head h3 {
   margin: 0;
 }
-.previews-title {
+/* The heading is the collapse toggle: full width, chevron on the right like the sidebar sections. */
+.previews-toggle {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 4px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  /* The chevron's corners pass the edge mid-turn; keep that from widening the page for a moment. */
+  overflow: hidden;
 }
-.previews-head h3 {
-  margin: 0;
+.previews-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.previews-toggle-indicator {
+  flex: 0 0 auto;
+  width: 1.2em;
+  height: 1.2em;
+  color: var(--muted);
+  transition: rotate 0.2s;
+}
+.previews-toggle[aria-expanded='true'] .previews-toggle-indicator {
+  rotate: 180deg;
+}
+.previews-intro {
+  margin: 4px 0 12px;
+}
+/* Collapsed to its heading: 12 px + the 24 px heading + 12 px, matching FIT_CHECK_COLLAPSED_PX in Designer.tsx. */
+.previews.collapsed {
+  padding-bottom: 12px;
+  overflow: hidden;
 }
 .previews-strip {
   display: grid;

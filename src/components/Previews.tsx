@@ -1,4 +1,4 @@
-import { Check, ChevronRight, TriangleAlert } from 'lucide-solid';
+import { Check, ChevronDown, ChevronRight, TriangleAlert } from 'lucide-solid';
 import { For, Show, createEffect, createMemo, createSignal, on, onCleanup, onMount } from 'solid-js';
 import { PX_PER_MM, elementLabel } from '../lib/template';
 import {
@@ -31,7 +31,7 @@ interface Variant {
  * value (by character count) across the whole CSV. The longest one is the stress
  * test for the layout; the shortest shows whether short values still look balanced.
  */
-export default function Previews() {
+export default function Previews(props: { open: boolean; onToggle: () => void }) {
   const [zoom, setZoom] = createSignal(0.6);
   let strip!: HTMLDivElement;
 
@@ -89,85 +89,90 @@ export default function Previews() {
   });
 
   return (
-    <section class="previews">
+    <section class="previews" classList={{ collapsed: !props.open }}>
       <header class="previews-head">
-        <div class="previews-title">
-          <Heading as="h3" textStyle="md" color="fg.default" data-testid="fit-check-title">
+        <Heading as="h3" textStyle="md" color="fg.default" data-testid="fit-check-title">
+          {/* Collapses the Fit Check to this heading (the canvas gets the room), like the sidebar sections. */}
+          <button type="button" class="previews-toggle" aria-expanded={props.open} aria-controls="fit-check-body" onClick={() => props.onToggle()}>
             Fit Check{template.sidedness === 'single' ? '' : ` — ${sideLabel()}`}
-          </Heading>
-        </div>
-        <p class="muted small">
+            <ChevronDown class="previews-toggle-indicator" aria-hidden="true" />
+          </button>
+        </Heading>
+      </header>
+      {/* Hidden rather than removed while collapsed, so the previews keep their size measurements. */}
+      <div id="fit-check-body" hidden={!props.open}>
+        <p class="muted small previews-intro">
           <Show when={hasData()} fallback={<>Load a CSV to see your layout filled with the shortest, median and longest values of each field.</>}>
             Each field independently takes its shortest, median or longest value across all {rows().length} rows. Red outlines mean the text does not
             fit even at its minimum font size, or is cut off by the edge of the card.
             <Show when={template.sidedness === 'different'}> These checks cover the {sideLabel()} only; switch sides to check the other one.</Show>
           </Show>
         </p>
-      </header>
-      <div class="previews-strip" ref={strip}>
-        {/* Keyed on the side: a switch remounts the previews so no result from the other side lingers. */}
-        <Show when={activeSide()} keyed>
-          {(side) => <For each={variants}>{(v) => <PreviewCard side={side} variant={v} zoom={zoom()} enabled={hasData()} />}</For>}
+        <div class="previews-strip" ref={strip}>
+          {/* Keyed on the side: a switch remounts the previews so no result from the other side lingers. */}
+          <Show when={activeSide()} keyed>
+            {(side) => <For each={variants}>{(v) => <PreviewCard side={side} variant={v} zoom={zoom()} enabled={hasData()} />}</For>}
+          </Show>
+        </div>
+        {/* Options that change how the three cards above are filled, kept right next to them. */}
+        <Show when={hasData()}>
+          <div class="previews-options" data-testid="previews-options">
+            <Switch
+              checked={ignoreEmpty()}
+              onChange={setIgnoreEmpty}
+              label="Ignore empty cells"
+              title="When off, an empty cell counts as the shortest value"
+              data-testid="ignore-empty"
+            />
+            <span class="muted small" data-testid="ignore-empty-hint">
+              {ignoreEmpty() ? 'Blank cells are skipped when choosing these values' : 'Blank cells count as the shortest value'}
+              <Show when={canvasUsesExtremes()}> · also used by the canvas preview ({canvasVariantName()})</Show>
+            </span>
+          </div>
+        </Show>
+        <Show when={hasData() && activeStats().length > 0}>
+          <Collapsible.Root class="preview-details">
+            <Collapsible.Trigger class="preview-details-trigger">
+              <Collapsible.Indicator class="preview-details-indicator">
+                <ChevronRight aria-hidden="true" />
+              </Collapsible.Indicator>
+              Which values are being used?
+            </Collapsible.Trigger>
+            <Collapsible.Content>
+              <Table.Root class="table small stats">
+                <Table.Head>
+                  <Table.Row>
+                    <Table.Header>Field</Table.Header>
+                    <Table.Header>Shortest</Table.Header>
+                    <Table.Header>Median</Table.Header>
+                    <Table.Header>Longest</Table.Header>
+                  </Table.Row>
+                </Table.Head>
+                <Table.Body>
+                  <For each={activeStats()}>
+                    {(s) => (
+                      <Table.Row>
+                        <Table.Cell>
+                          <strong>{s.column}</strong>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <span class="val">{s.shortest || <em class="muted">(empty)</em>}</span> <span class="len">{s.minLen}</span>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <span class="val">{s.median || <em class="muted">(empty)</em>}</span> <span class="len">{s.medianLen}</span>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <span class="val">{s.longest || <em class="muted">(empty)</em>}</span> <span class="len">{s.maxLen}</span>
+                        </Table.Cell>
+                      </Table.Row>
+                    )}
+                  </For>
+                </Table.Body>
+              </Table.Root>
+            </Collapsible.Content>
+          </Collapsible.Root>
         </Show>
       </div>
-      {/* Options that change how the three cards above are filled, kept right next to them. */}
-      <Show when={hasData()}>
-        <div class="previews-options" data-testid="previews-options">
-          <Switch
-            checked={ignoreEmpty()}
-            onChange={setIgnoreEmpty}
-            label="Ignore empty cells"
-            title="When off, an empty cell counts as the shortest value"
-            data-testid="ignore-empty"
-          />
-          <span class="muted small" data-testid="ignore-empty-hint">
-            {ignoreEmpty() ? 'Blank cells are skipped when choosing these values' : 'Blank cells count as the shortest value'}
-            <Show when={canvasUsesExtremes()}> · also used by the canvas preview ({canvasVariantName()})</Show>
-          </span>
-        </div>
-      </Show>
-      <Show when={hasData() && activeStats().length > 0}>
-        <Collapsible.Root class="preview-details">
-          <Collapsible.Trigger class="preview-details-trigger">
-            <Collapsible.Indicator class="preview-details-indicator">
-              <ChevronRight aria-hidden="true" />
-            </Collapsible.Indicator>
-            Which values are being used?
-          </Collapsible.Trigger>
-          <Collapsible.Content>
-            <Table.Root class="table small stats">
-              <Table.Head>
-                <Table.Row>
-                  <Table.Header>Field</Table.Header>
-                  <Table.Header>Shortest</Table.Header>
-                  <Table.Header>Median</Table.Header>
-                  <Table.Header>Longest</Table.Header>
-                </Table.Row>
-              </Table.Head>
-              <Table.Body>
-                <For each={activeStats()}>
-                  {(s) => (
-                    <Table.Row>
-                      <Table.Cell>
-                        <strong>{s.column}</strong>
-                      </Table.Cell>
-                      <Table.Cell>
-                        <span class="val">{s.shortest || <em class="muted">(empty)</em>}</span> <span class="len">{s.minLen}</span>
-                      </Table.Cell>
-                      <Table.Cell>
-                        <span class="val">{s.median || <em class="muted">(empty)</em>}</span> <span class="len">{s.medianLen}</span>
-                      </Table.Cell>
-                      <Table.Cell>
-                        <span class="val">{s.longest || <em class="muted">(empty)</em>}</span> <span class="len">{s.maxLen}</span>
-                      </Table.Cell>
-                    </Table.Row>
-                  )}
-                </For>
-              </Table.Body>
-            </Table.Root>
-          </Collapsible.Content>
-        </Collapsible.Root>
-      </Show>
     </section>
   );
 }

@@ -238,3 +238,53 @@ test('on larger screens the app name stays in the top bar and not on the Data pa
   await expect(page.getByTestId('brand')).toBeVisible();
   await expect(page.getByTestId('brand-page')).toBeHidden();
 });
+
+test.describe('Hiding the Fit Check', () => {
+  const toggle = (page: Page) => page.getByRole('button', { name: 'Fit Check' });
+  const visibleCards = (page: Page) => page.locator('.previews-strip .preview:visible');
+
+  test('on desktop it collapses to its heading, the canvas gets the room, and it opens again at the same height', async ({ page }) => {
+    await loadSample(page);
+    await expect(toggle(page)).toHaveAttribute('aria-expanded', 'true');
+    const panel = page.locator('.previews-panel');
+    const canvas = page.locator('.canvas-area');
+    const openHeight = (await panel.boundingBox())!.height;
+    const canvasBefore = (await canvas.boundingBox())!.height;
+
+    await toggle(page).click();
+    await expect(toggle(page)).toHaveAttribute('aria-expanded', 'false');
+    await expect(visibleCards(page)).toHaveCount(0);
+    await expect(page.locator('#fit-check-body')).toBeHidden();
+    await expect.poll(async () => (await panel.boundingBox())!.height).toBeLessThan(60); // just the heading
+    expect((await canvas.boundingBox())!.height).toBeGreaterThan(canvasBefore + 150);
+    await expect(toggle(page)).toBeInViewport();
+
+    await toggle(page).click();
+    await expect(toggle(page)).toHaveAttribute('aria-expanded', 'true');
+    await expect(visibleCards(page)).toHaveCount(3);
+    await expect.poll(async () => Math.round((await panel.boundingBox())!.height)).toBe(Math.round(openHeight));
+  });
+
+  test('dragging the divider all the way down collapses it too, and the toggle follows', async ({ page }) => {
+    await loadSample(page);
+    const divider = page.getByRole('separator', { name: 'Resize card previews and template editor' });
+    const box = (await divider.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2, page.viewportSize()!.height - 2, { steps: 8 });
+    await page.mouse.up();
+    await expect(toggle(page)).toHaveAttribute('aria-expanded', 'false');
+    await expect(visibleCards(page)).toHaveCount(0);
+    await toggle(page).click();
+    await expect(visibleCards(page)).toHaveCount(3);
+  });
+
+  test('works from the keyboard', async ({ page }) => {
+    await loadSample(page);
+    await toggle(page).focus();
+    await page.keyboard.press('Enter');
+    await expect(toggle(page)).toHaveAttribute('aria-expanded', 'false');
+    await page.keyboard.press(' ');
+    await expect(toggle(page)).toHaveAttribute('aria-expanded', 'true');
+  });
+});

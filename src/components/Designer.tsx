@@ -1,5 +1,6 @@
 import { For, Show, createEffect, createMemo, createSignal, on, onCleanup, onMount } from 'solid-js';
 import { GripHorizontal, Minus, Plus, Redo2, Undo2 } from 'lucide-solid';
+import { useSplitter } from '@ark-ui/solid/splitter';
 import { fitProblem, type FitStatus, type PreviewSource, type SideId, type TemplateElement } from '../lib/types';
 import { PX_PER_MM, clamp, describeFit, outsideCard, round, uid } from '../lib/template';
 import { editingLabel } from '../lib/sides';
@@ -32,6 +33,8 @@ import { Select, IconButton, Button, Toggle, Splitter } from './ui';
 type HandleDir = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
 /** Phones get their own toolbar arrangement (see styles.css). */
 const PHONE_QUERY = '(max-width: 600px)';
+/** Height of the Fit Check panel when collapsed to just its heading (see `.previews.collapsed`). */
+const FIT_CHECK_COLLAPSED_PX = 48;
 /** How narrow the "Preview with" menu may get (it truncates its text) to make room for Front / Back. */
 const PREVIEW_MENU_MIN_PX = 110;
 
@@ -78,6 +81,35 @@ export default function Designer() {
   let canvasCaption!: HTMLDivElement;
   let toolbar!: HTMLDivElement;
   let drag: DragState | null = null;
+
+  /**
+   * The Fit Check panel under the canvas can be collapsed to its heading – with its
+   * toggle, or by dragging the divider down – leaving the room to the canvas.
+   */
+  const [fitCheckOpen, setFitCheckOpen] = createSignal(true);
+  const split = useSplitter({
+    orientation: 'vertical',
+    defaultSize: ['1fr', '300px'],
+    panels: [
+      { id: 'editor', minSize: '180px' },
+      {
+        id: 'previews',
+        minSize: '100px',
+        collapsible: true,
+        collapsedSize: `${FIT_CHECK_COLLAPSED_PX}px`,
+        resizeBehavior: 'preserve-pixel-size',
+      },
+    ],
+    keyboardResizeBy: 20,
+    onCollapse: (d) => d.panelId === 'previews' && setFitCheckOpen(false),
+    onExpand: (d) => d.panelId === 'previews' && setFitCheckOpen(true),
+  });
+  function toggleFitCheck() {
+    const open = !fitCheckOpen();
+    setFitCheckOpen(open);
+    if (open) split().expandPanel('previews');
+    else split().collapsePanel('previews');
+  }
   let pan: PanState | null = null;
 
   const cardW = () => template.card.width;
@@ -527,17 +559,7 @@ export default function Designer() {
           </div>
         </div>
 
-        <Splitter.Root
-          class="editor-split"
-          orientation="vertical"
-          defaultSize={['1fr', '300px']}
-          panels={[
-            { id: 'editor', minSize: '180px' },
-            { id: 'previews', minSize: '100px', resizeBehavior: 'preserve-pixel-size' },
-          ]}
-          keyboardResizeBy={20}
-          gap="0"
-        >
+        <Splitter.RootProvider value={split} class="editor-split" gap="0">
           <Splitter.Panel
             id="editor"
             class="editor-panel"
@@ -661,9 +683,9 @@ export default function Designer() {
             <GripHorizontal size={12} aria-hidden="true" />
           </Splitter.ResizeTrigger>
           <Splitter.Panel id="previews" class="previews-panel" p="0" borderWidth="0" borderRadius="0" minHeight="0" overflow="hidden">
-            <Previews />
+            <Previews open={fitCheckOpen()} onToggle={toggleFitCheck} />
           </Splitter.Panel>
-        </Splitter.Root>
+        </Splitter.RootProvider>
       </main>
 
       <aside class="side right">

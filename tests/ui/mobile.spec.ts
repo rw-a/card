@@ -215,3 +215,19 @@ test('on phones the app name only shows on the Data page, below the tabs, and pa
     }
   }
 });
+
+test('on phones the Fit Check can be collapsed to its heading and opened again', async ({ page }) => {
+  await loadSample(page);
+  const toggle = page.getByRole('button', { name: 'Fit Check' });
+  const previews = page.locator('.previews');
+  const openHeight = (await previews.boundingBox())!.height;
+  await toggle.tap();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.locator('.previews-strip .preview:visible')).toHaveCount(0);
+  expect((await previews.boundingBox())!.height).toBeLessThan(60);
+  expect(openHeight).toBeGreaterThan(400);
+  await toggle.tap();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('.previews-strip .preview:visible')).toHaveCount(3);
+  await expectNoOverflow(page, 'design tab with the fit check toggled');
+});
