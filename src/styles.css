@@ -126,6 +126,10 @@ code {
   display: flex;
   gap: 4px;
 }
+/* Phones show the app name at the top of the Data page instead (see the phone media query). */
+.brand-page {
+  display: none;
+}
 .topbar-right {
   display: flex;
   align-items: center;
@@ -1400,16 +1404,24 @@ input.color {
 }
 
 @media (max-width: 600px) {
+  /* Only the tabs stay in the top bar, so every page starts higher up. */
   .topbar {
     grid-template-columns: minmax(0, 1fr);
     justify-items: center;
-    gap: 2px;
     height: auto;
-    padding: 6px 8px;
+    padding: 4px 8px 0;
+  }
+  .topbar .brand-header {
+    display: none;
   }
   .brand {
     justify-self: center;
     font-size: 13px;
+  }
+  .brand-page {
+    display: flex;
+    justify-content: center;
+    margin: 0 0 10px;
   }
   .brand svg {
     width: 18px;
@@ -1424,7 +1436,7 @@ input.color {
   }
 
   .data-layout {
-    padding: 14px 10px 40px;
+    padding: 10px 10px 40px;
   }
   .dropzone {
     padding: 24px 12px;

@@ -1,5 +1,4 @@
 import { For, Show } from 'solid-js';
-import { IdCard } from 'lucide-solid';
 import {
   dataset,
   dismissStartupNotice,
@@ -12,6 +11,7 @@ import {
   template,
   type Tab,
 } from '../lib/store';
+import Brand from './Brand';
 import DataPanel from './DataPanel';
 import Designer from './Designer';
 import PrintPanel from './PrintPanel';
@@ -27,10 +27,7 @@ export default function App() {
   return (
     <Tabs.Root class="app" value={tab()} onValueChange={(d) => setTab(d.value as Tab)}>
       <header class="topbar">
-        <div class="brand" data-testid="brand">
-          <IdCard size={22} aria-hidden="true" />
-          <span>Lanyard Maker</span>
-        </div>
+        <Brand class="brand-header" testId="brand" />
         <Tabs.List class="steps" aria-label="Steps" data-testid="steps">
           <For each={steps}>
             {(s) => (

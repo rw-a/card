@@ -3,6 +3,7 @@ import { ArrowRight, Upload } from 'lucide-solid';
 import { SAMPLE_CSV, parseCsv, readFileAsText } from '../lib/csv';
 import { columnStats } from '../lib/stats';
 import { dataset, ignoreEmpty, setDataset, setIgnoreEmpty, setTab, usedColumns } from '../lib/store';
+import Brand from './Brand';
 import { Section, Switch, Button, Textarea, Notice, Badge, Table, Heading } from './ui';
 
 export default function DataPanel() {
@@ -46,6 +47,7 @@ export default function DataPanel() {
   return (
     <div class="panel-scroll">
       <div class="data-layout">
+        <Brand class="brand-page" testId="brand-page" />
         <div
           class="dropzone"
           classList={{ over: dragOver() }}

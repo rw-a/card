@@ -232,3 +232,9 @@ test.describe('Design toolbar with different sides', () => {
     await expect.poll(async () => (await toolbarLayout(page)).sameLine).toBe(true);
   });
 });
+
+test('on larger screens the app name stays in the top bar and not on the Data page', async ({ page }) => {
+  await openApp(page);
+  await expect(page.getByTestId('brand')).toBeVisible();
+  await expect(page.getByTestId('brand-page')).toBeHidden();
+});

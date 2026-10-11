@@ -187,3 +187,28 @@ test('on phones Front / Back goes bottom-left with zoom bottom-right on the same
     await expectNoOverflow(page, `${width}px design toolbar`);
   }
 });
+
+test('on phones the app name only shows on the Data page, below the tabs, and pages start right under the tabs', async ({ page }) => {
+  await loadSample(page);
+  const headerBrand = page.getByTestId('brand');
+  const pageBrand = page.getByTestId('brand-page');
+  for (const width of [375, 320]) {
+    await page.setViewportSize({ width, height: 667 });
+    for (const tab of ['data', 'design', 'print'] as const) {
+      await page.getByTestId(`tab-${tab}`).click();
+      await expect(headerBrand, `${width}px ${tab}`).toBeHidden();
+      const header = (await page.locator('.topbar').boundingBox())!;
+      expect(header.height, `${width}px ${tab}: the top bar is just the tabs`).toBeLessThanOrEqual(50);
+      if (tab === 'data') {
+        await expect(pageBrand).toBeVisible();
+        await expect(pageBrand).toHaveText('Lanyard Maker');
+        const brand = (await pageBrand.boundingBox())!;
+        expect(brand.y).toBeGreaterThanOrEqual(header.y + header.height); // below the tabs…
+        expect(brand.y - (header.y + header.height)).toBeLessThan(24); // …close to them
+        expect(Math.abs(brand.x + brand.width / 2 - width / 2)).toBeLessThan(2); // centred
+      } else {
+        await expect(pageBrand).toBeHidden();
+      }
+    }
+  }
+});
