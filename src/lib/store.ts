@@ -1,7 +1,7 @@
 import { createMemo, createSignal, batch } from 'solid-js';
 import { createStore, produce, reconcile, unwrap } from 'solid-js/store';
 import type { Dataset, PreviewSource, SideDesign, SideId, Sidedness, Template, TemplateElement } from './types';
-import { columnsUsedBy, columnsUsedByDesign, defaultTemplate, internAsset, unusedAssetIds } from './template';
+import { columnsUsedBy, columnsUsedByDesign, defaultTemplate, internAsset, nameAsset, unusedAssetIds } from './template';
 import { cloneSideDesign, createBlankSide, normalizeEditableSide } from './sides';
 import { parseTemplate, type ParseResult } from './template-migrations';
 import { extremeRows } from './stats';
@@ -185,15 +185,17 @@ function schedulePersist() {
 
 /**
  * Store an uploaded picture once (identical content → same reference) and return
- * the `asset:` reference to put on an element. Not recorded in the undo history on
- * its own; the element change that follows is. An asset nothing ends up using is
- * pruned at the next save.
+ * the `asset:` reference to put on an element. `fileName` is remembered for the
+ * "Pictures Stored" list. Not recorded in the undo history on its own; the
+ * element change that follows is. An asset nothing ends up using is pruned
+ * (with its name) at the next save.
  */
-export function internImage(dataUrl: string): string {
+export function internImage(dataUrl: string, fileName?: string): string {
   let ref = dataUrl;
   setTemplateStore(
     produce((t) => {
       ref = internAsset(t.assets, dataUrl);
+      if (fileName) nameAsset(t.assetNames, ref, fileName);
     }),
   );
   schedulePersist();
@@ -206,7 +208,10 @@ function pruneUnusedAssets() {
   if (ids.length === 0) return;
   setTemplateStore(
     produce((t) => {
-      for (const id of ids) delete t.assets[id];
+      for (const id of ids) {
+        delete t.assets[id];
+        delete t.assetNames[id];
+      }
     }),
   );
 }

@@ -1,8 +1,8 @@
 {
   "name": "lanyard-maker",
   "version": "1.0.0",
-  "description": "Static SolidJS app: upload a CSV, design a badge template, generate printable lanyard cards.",
   "private": true,
+  "description": "Static SolidJS app: upload a CSV, design a badge template, generate printable lanyard cards.",
   "type": "module",
   "scripts": {
     "prepare": "panda codegen",
@@ -10,6 +10,10 @@
     "build": "panda codegen && tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "panda codegen && tsc --noEmit && tsc --noEmit -p tests/tsconfig.json",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
     "test": "playwright test",
     "test:unit": "playwright test --project=unit",
     "test:ui": "playwright test --project=chromium",
@@ -30,6 +34,8 @@
     "@playwright/test": "^1.63.0",
     "@types/node": "^26.6.4",
     "@types/papaparse": "^5.3.15",
+    "oxfmt": "^0.72.0",
+    "oxlint": "^1.87.0",
     "typescript": "^5.6.3",
     "vite": "^5.4.11",
     "vite-plugin-solid": "^2.10.2"

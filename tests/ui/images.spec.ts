@@ -292,6 +292,8 @@ test.describe('Images – deduplicated storage', () => {
     expect(await stored.locator('.stored-picture-size').allTextContents()).toEqual(
       expect.arrayContaining([formatBytes(bears.buffer.length), formatBytes(falcons.buffer.length)]),
     );
+    // Listed by the file name they were uploaded with; otters.png is the same picture as bears.png
+    await expect(stored.locator('.stored-picture-name')).toHaveText(['bears.png', 'falcons.png']);
   });
 
   test('a picture used by two elements is stored once and freed when the last use goes', async ({ page }) => {
@@ -433,4 +435,91 @@ test.describe('Picture controls', () => {
       await expect(upload).toBeVisible();
     });
   }
+});
+
+test.describe('Picture file names', () => {
+  const names = (page: import('@playwright/test').Page) => page.getByTestId('stored-picture').locator('.stored-picture-name');
+
+  test('uploaded pictures are listed under their file names and keep them through reload and export/import', async ({ page }) => {
+    await loadSample(page);
+    await page
+      .locator('[data-field="Background Image"] input[type=file]')
+      .setInputFiles(await makePng(page, 'Camp Background.png', '#dddddd', 200, 280));
+    await addImageElement(page);
+    const logo = await makePng(page, 'logo-2026.png', '#ff0000');
+    await page.getByTestId('image-upload').setInputFiles(logo);
+    await page.keyboard.press('Escape');
+    await expect(names(page)).toHaveText(['Camp Background.png', 'logo-2026.png']);
+    await expect(page.getByTestId('stored-picture').first().locator('img')).toHaveAttribute('alt', 'Camp Background.png');
+
+    // The same picture uploaded again under another name is still one picture, keeping its first name
+    await page.locator('[data-field="Background Image"] input[type=file]').setInputFiles({ ...logo, name: 'renamed.png' });
+    await expect(names(page)).toHaveText(['logo-2026.png']); // the old background is no longer used…
+    await page.keyboard.press('Control+z'); // …so put it back for the rest of the test
+    await expect(names(page)).toHaveText(['Camp Background.png', 'logo-2026.png']);
+
+    await page.evaluate(() => window.lanyardMaker.flushPersist());
+    await page.reload();
+    await expect(page.getByTestId('tab-design')).toHaveAttribute('aria-selected', 'true');
+    await expect(names(page)).toHaveText(['Camp Background.png', 'logo-2026.png']);
+
+    const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export JSON' }).click()]);
+    const json = JSON.parse(await (await download.createReadStream()).toArray().then((c) => Buffer.concat(c).toString()));
+    expect(Object.values(json.assetNames).sort()).toEqual(['Camp Background.png', 'logo-2026.png']);
+    await page.getByRole('button', { name: 'Reset to default' }).click();
+    await page.getByRole('button', { name: 'Really reset?' }).click();
+    await expect(page.getByTestId('stored-picture')).toHaveCount(0);
+    await page
+      .locator('input[type=file][accept*="json"]')
+      .setInputFiles({ name: 'x.lanyard.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(json)) });
+    await expect(names(page)).toHaveText(['Camp Background.png', 'logo-2026.png']);
+  });
+
+  test('a removed picture takes its name with it; undo brings both back', async ({ page }) => {
+    await loadSample(page);
+    await addImageElement(page);
+    await page.getByTestId('image-upload').setInputFiles(await makePng(page, 'badge-logo.png', '#00aa00'));
+    await page.getByRole('button', { name: 'Remove picture', exact: true }).click();
+    await page.keyboard.press('Escape');
+    await expect.poll(async () => (await getStoredTemplate(page)).assetNames).toEqual({});
+    await expect(page.getByTestId('stored-picture')).toHaveCount(0);
+    await page.keyboard.press('Control+z');
+    await expect(canvasImage(page)).toHaveCount(1);
+    await page.locator('.canvas-area').click({ position: { x: 5, y: 5 } }); // undo reselects the layer; show the card panel
+    await expect(names(page)).toHaveText(['badge-logo.png']);
+  });
+
+  test('pictures from templates saved before names were kept are listed as "Picture N"', async ({ page }) => {
+    await loadSample(page);
+    const t = await getTemplate(page);
+    const red = await makePng(page, 'a.png', '#ff0000');
+    const blue = await makePng(page, 'b.png', '#0000ff');
+    const legacy = {
+      version: 2,
+      card: { width: t.card.width, height: t.card.height, borderRadius: t.card.borderRadius, bg: '#ffffff', bgImage: 'asset:red' },
+      page: t.page,
+      elements: [
+        {
+          ...(await getElement(page, 'Name')),
+          id: 'img1',
+          name: 'Logo',
+          kind: 'image',
+          src: 'asset:blue',
+          srcColumn: null,
+          imageRule: null,
+          fit: 'contain',
+          borderRadius: 0,
+        },
+      ],
+      assets: { red: red.dataUrl, blue: blue.dataUrl },
+    };
+    await page
+      .locator('input[type=file][accept*="json"]')
+      .setInputFiles({ name: 'old.lanyard.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(legacy)) });
+    await expect(names(page)).toHaveText(['Picture 1', 'Picture 2']);
+    await expect(names(page).first()).toHaveClass(/unnamed/);
+    // A new upload gets its name and is listed first
+    await page.locator('[data-field="Background Image"] input[type=file]').setInputFiles(await makePng(page, 'new.png', '#00ff00'));
+    await expect(names(page)).toHaveText(['new.png', 'Picture 1']); // the old background is replaced (and pruned on save)
+  });
 });

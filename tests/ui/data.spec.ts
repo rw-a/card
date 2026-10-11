@@ -37,11 +37,14 @@ test.describe('Data tab', () => {
 
   test('uploads a CSV file through the file picker', async ({ page }) => {
     await openApp(page);
-    await page.locator('input[type=file]').first().setInputFiles({
-      name: 'roster.csv',
-      mimeType: 'text/csv',
-      buffer: Buffer.from('Name,Accommodation,Group\nAda,Cabin 1,Red\nBob,Cabin 2,Blue\n'),
-    });
+    await page
+      .locator('input[type=file]')
+      .first()
+      .setInputFiles({
+        name: 'roster.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.from('Name,Accommodation,Group\nAda,Cabin 1,Red\nBob,Cabin 2,Blue\n'),
+      });
     await expect(page.getByText(/roster\.csv — 2 People, 3 Columns/)).toBeVisible();
     await expect(page.getByTestId('tab-data')).toContainText('2');
   });

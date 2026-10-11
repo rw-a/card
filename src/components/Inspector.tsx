@@ -1,5 +1,16 @@
 import { For, Show, createMemo, createSignal } from 'solid-js';
-import { AlignCenter, AlignLeft, AlignRight, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd, AlignVerticalJustifyStart, Bold, CaseUpper, Italic, X } from 'lucide-solid';
+import {
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
+  AlignVerticalJustifyCenter,
+  AlignVerticalJustifyEnd,
+  AlignVerticalJustifyStart,
+  Bold,
+  CaseUpper,
+  Italic,
+  X,
+} from 'lucide-solid';
 import { unwrap } from 'solid-js/store';
 import type { ColorRule, ImageElement, ImageRule, RectElement, SideId, TemplateElement, TextElement } from '../lib/types';
 import {
@@ -27,7 +38,21 @@ import {
   template,
   updateElement,
 } from '../lib/store';
-import { ColorField, Field, NumberField, SegButtons, Section, Select, TextField, Toggle, Button, Notice, Textarea, Input, PictureControl } from './ui';
+import {
+  ColorField,
+  Field,
+  NumberField,
+  SegButtons,
+  Section,
+  Select,
+  TextField,
+  Toggle,
+  Button,
+  Notice,
+  Textarea,
+  Input,
+  PictureControl,
+} from './ui';
 
 export default function Inspector() {
   return (
@@ -43,7 +68,18 @@ export default function Inspector() {
 function CardInspector() {
   let importInput!: HTMLInputElement;
   const [confirmReset, setConfirmReset] = createSignal(false);
-  const storedPictures = createMemo(() => Object.entries(template.assets).sort(([a], [b]) => a.localeCompare(b)));
+  /**
+   * Each stored picture under the file name it was uploaded with, A–Z; pictures
+   * from older templates have no name and are listed after them as "Picture N".
+   */
+  const storedPictures = createMemo(() => {
+    const all = Object.entries(template.assets).map(([id, url]) => ({ id, url, name: template.assetNames[id] ?? '' }));
+    const named = all
+      .filter((p) => p.name)
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }) || a.id.localeCompare(b.id));
+    const unnamed = all.filter((p) => !p.name).sort((a, b) => a.id.localeCompare(b.id));
+    return [...named.map((p) => ({ ...p, label: p.name })), ...unnamed.map((p, i) => ({ ...p, label: `Picture ${i + 1}` }))];
+  });
 
   function exportTemplate() {
     const copy = structuredClone(unwrap(template));
@@ -98,7 +134,10 @@ function CardInspector() {
               </Button>
             }
           >
-            <Button variant="outline" size="xs" colorPalette="red"
+            <Button
+              variant="outline"
+              size="xs"
+              colorPalette="red"
               class="btn small danger"
               onClick={() => {
                 replaceTemplate(defaultTemplate(headers()));
@@ -115,8 +154,11 @@ function CardInspector() {
         <p class="muted small">The template is saved in this browser automatically. Export it to keep a copy or share it.</p>
         <Show when={missingColumns().length > 0}>
           <Notice warning class="notice warn small">
-            These fields are not in your CSV: {missingColumns().map((c) => `{{${c}}}`).join(', ')}. Select the element and pick a column from
-            "Insert field".
+            These fields are not in your CSV:{' '}
+            {missingColumns()
+              .map((c) => `{{${c}}}`)
+              .join(', ')}
+            . Select the element and pick a column from "Insert field".
           </Notice>
         </Show>
       </Section>
@@ -125,11 +167,13 @@ function CardInspector() {
         <Show when={storedPictures().length > 0} fallback={<p class="muted small">No pictures stored.</p>}>
           <ul class="stored-pictures">
             <For each={storedPictures()}>
-              {([, url], index) => (
+              {(p) => (
                 <li class="stored-picture" data-testid="stored-picture">
-                  <img class="thumb" src={url} alt={`Stored picture ${index() + 1}`} loading="lazy" />
-                  <span class="stored-picture-name">Picture {index() + 1}</span>
-                  <span class="stored-picture-size">{formatBytes(dataUrlBytes(url))}</span>
+                  <img class="thumb" src={p.url} alt={p.label} loading="lazy" />
+                  <span class="stored-picture-name" classList={{ unnamed: !p.name }} title={p.label}>
+                    {p.label}
+                  </span>
+                  <span class="stored-picture-size">{formatBytes(dataUrlBytes(p.url))}</span>
                 </li>
               )}
             </For>
@@ -146,8 +190,8 @@ function CardInspector() {
           </li>
           <li>Use "Colour by field" on a shape to colour-code badges by cabin or group.</li>
           <li>
-            For double-sided badges choose <strong>Sides</strong> in Card Settings: the same design on both sides, or a different back that starts
-            as a copy of the front.
+            For double-sided badges choose <strong>Sides</strong> in Card Settings: the same design on both sides, or a different back that starts as
+            a copy of the front.
           </li>
           <li>
             Add an <strong>Image</strong> and set its picture source to "Different picture per value of a field" to show, say, a bear for the Bears
@@ -189,10 +233,26 @@ function ElementInspector(props: { el: TemplateElement }) {
         </div>
         <div class="grid2">
           <Field label="Rotation">
-            <NumberField value={props.el.rotation} min={-180} max={180} step={1} unit="°" onCommit={commit} onInput={(v) => set((el) => (el.rotation = v))} />
+            <NumberField
+              value={props.el.rotation}
+              min={-180}
+              max={180}
+              step={1}
+              unit="°"
+              onCommit={commit}
+              onInput={(v) => set((el) => (el.rotation = v))}
+            />
           </Field>
           <Field label="Opacity">
-            <NumberField value={props.el.opacity * 100} min={0} max={100} step={5} unit="%" onCommit={commit} onInput={(v) => set((el) => (el.opacity = v / 100))} />
+            <NumberField
+              value={props.el.opacity * 100}
+              min={0}
+              max={100}
+              step={5}
+              unit="%"
+              onCommit={commit}
+              onInput={(v) => set((el) => (el.opacity = v / 100))}
+            />
           </Field>
         </div>
         <div class="row gap wrap">
@@ -202,7 +262,9 @@ function ElementInspector(props: { el: TemplateElement }) {
           <Button variant="outline" size="xs" class="btn small" onClick={() => set((el) => (el.y = (template.card.height - el.h) / 2), true)}>
             Centre vertically
           </Button>
-          <Button variant="outline" size="xs"
+          <Button
+            variant="outline"
+            size="xs"
             class="btn small"
             onClick={() =>
               set((el) => {
@@ -280,19 +342,54 @@ function TextInspector(props: { el: TextElement }) {
           <Select value={props.el.fontFamily} options={FONT_FAMILIES} onChange={(v) => set((el) => (el.fontFamily = v), true)} />
         </Field>
         <div class="row gap wrap font-style-controls">
-          <Button variant="outline" size="xs" class="btn small" aria-label="Bold" title="Bold" aria-pressed={props.el.bold} data-state={props.el.bold ? 'on' : 'off'} onClick={() => set((el) => (el.bold = !el.bold), true)}>
+          <Button
+            variant="outline"
+            size="xs"
+            class="btn small"
+            aria-label="Bold"
+            title="Bold"
+            aria-pressed={props.el.bold}
+            data-state={props.el.bold ? 'on' : 'off'}
+            onClick={() => set((el) => (el.bold = !el.bold), true)}
+          >
             <Bold size={16} aria-hidden="true" />
           </Button>
-          <Button variant="outline" size="xs" class="btn small" aria-label="Italic" title="Italic" aria-pressed={props.el.italic} data-state={props.el.italic ? 'on' : 'off'} onClick={() => set((el) => (el.italic = !el.italic), true)}>
+          <Button
+            variant="outline"
+            size="xs"
+            class="btn small"
+            aria-label="Italic"
+            title="Italic"
+            aria-pressed={props.el.italic}
+            data-state={props.el.italic ? 'on' : 'off'}
+            onClick={() => set((el) => (el.italic = !el.italic), true)}
+          >
             <Italic size={16} aria-hidden="true" />
           </Button>
-          <Button variant="outline" size="xs" class="btn small" aria-label="Uppercase" title="Uppercase" aria-pressed={props.el.uppercase} data-state={props.el.uppercase ? 'on' : 'off'} onClick={() => set((el) => (el.uppercase = !el.uppercase), true)}>
+          <Button
+            variant="outline"
+            size="xs"
+            class="btn small"
+            aria-label="Uppercase"
+            title="Uppercase"
+            aria-pressed={props.el.uppercase}
+            data-state={props.el.uppercase ? 'on' : 'off'}
+            onClick={() => set((el) => (el.uppercase = !el.uppercase), true)}
+          >
             <CaseUpper size={16} aria-hidden="true" />
           </Button>
         </div>
         <div class="grid2 font-size-controls">
           <Field label="Size">
-            <NumberField value={props.el.fontSize} min={4} max={200} step={1} unit="pt" onCommit={commit} onInput={(v) => set((el) => (el.fontSize = v))} />
+            <NumberField
+              value={props.el.fontSize}
+              min={4}
+              max={200}
+              step={1}
+              unit="pt"
+              onCommit={commit}
+              onInput={(v) => set((el) => (el.fontSize = v))}
+            />
           </Field>
           <Field label="Min Shrinked Size">
             <NumberField
@@ -337,10 +434,26 @@ function TextInspector(props: { el: TextElement }) {
         </div>
         <div class="grid2">
           <Field label="Line height">
-            <NumberField value={props.el.lineHeight} min={0.6} max={3} step={0.05} unit="×" onCommit={commit} onInput={(v) => set((el) => (el.lineHeight = v))} />
+            <NumberField
+              value={props.el.lineHeight}
+              min={0.6}
+              max={3}
+              step={0.05}
+              unit="×"
+              onCommit={commit}
+              onInput={(v) => set((el) => (el.lineHeight = v))}
+            />
           </Field>
           <Field label="Letter spacing">
-            <NumberField value={props.el.letterSpacing} min={-0.1} max={1} step={0.01} unit="em" onCommit={commit} onInput={(v) => set((el) => (el.letterSpacing = v))} />
+            <NumberField
+              value={props.el.letterSpacing}
+              min={-0.1}
+              max={1}
+              step={0.01}
+              unit="em"
+              onCommit={commit}
+              onInput={(v) => set((el) => (el.letterSpacing = v))}
+            />
           </Field>
         </div>
       </Section>
@@ -360,10 +473,25 @@ function TextInspector(props: { el: TextElement }) {
             <NumberField value={props.el.padding} min={0} max={20} unit="mm" onCommit={commit} onInput={(v) => set((el) => (el.padding = v))} />
           </Field>
           <Field label="Radius">
-            <NumberField value={props.el.borderRadius} min={0} max={50} unit="mm" onCommit={commit} onInput={(v) => set((el) => (el.borderRadius = v))} />
+            <NumberField
+              value={props.el.borderRadius}
+              min={0}
+              max={50}
+              unit="mm"
+              onCommit={commit}
+              onInput={(v) => set((el) => (el.borderRadius = v))}
+            />
           </Field>
           <Field label="Border">
-            <NumberField value={props.el.borderWidth} min={0} max={5} step={0.25} unit="mm" onCommit={commit} onInput={(v) => set((el) => (el.borderWidth = v))} />
+            <NumberField
+              value={props.el.borderWidth}
+              min={0}
+              max={5}
+              step={0.25}
+              unit="mm"
+              onCommit={commit}
+              onInput={(v) => set((el) => (el.borderWidth = v))}
+            />
           </Field>
         </div>
         <Show when={props.el.borderWidth > 0}>
@@ -386,10 +514,25 @@ function RectInspector(props: { el: RectElement }) {
       <ColorRuleEditor rule={props.el.colorRule} onChange={(r) => set((el) => (el.colorRule = r), true)} />
       <div class="grid2">
         <Field label="Corner radius">
-          <NumberField value={props.el.borderRadius} min={0} max={100} unit="mm" onCommit={commit} onInput={(v) => set((el) => (el.borderRadius = v))} />
+          <NumberField
+            value={props.el.borderRadius}
+            min={0}
+            max={100}
+            unit="mm"
+            onCommit={commit}
+            onInput={(v) => set((el) => (el.borderRadius = v))}
+          />
         </Field>
         <Field label="Border">
-          <NumberField value={props.el.borderWidth} min={0} max={10} step={0.25} unit="mm" onCommit={commit} onInput={(v) => set((el) => (el.borderWidth = v))} />
+          <NumberField
+            value={props.el.borderWidth}
+            min={0}
+            max={10}
+            step={0.25}
+            unit="mm"
+            onCommit={commit}
+            onInput={(v) => set((el) => (el.borderWidth = v))}
+          />
         </Field>
       </div>
       <Show when={props.el.borderWidth > 0}>
@@ -455,7 +598,12 @@ function ImageInspector(props: { el: ImageElement }) {
 
       <Show when={mode() === 'fixed'}>
         <Field label="Picture" block hint="PNG/JPG/SVG. Stored inside the template (large photos are scaled down).">
-          <PictureControl url={imageUrl(template.assets, props.el.src)} what="picture" onPick={() => input.click()} onRemove={() => set((el) => (el.src = ''), true)} />
+          <PictureControl
+            url={imageUrl(template.assets, props.el.src)}
+            what="picture"
+            onPick={() => input.click()}
+            onRemove={() => set((el) => (el.src = ''), true)}
+          />
           <input
             ref={input}
             type="file"
@@ -473,7 +621,7 @@ function ImageInspector(props: { el: ImageElement }) {
               const stillWanted = beginAsyncEdit(side, `${id}:src`);
               const dataUrl = await readImageFile(f);
               if (!stillWanted() || !findElement(side, id)) return;
-              const ref = internImage(dataUrl);
+              const ref = internImage(dataUrl, f.name);
               updateElement<ImageElement>(side, id, (el) => (el.src = ref), true);
             }}
           />
@@ -507,7 +655,14 @@ function ImageInspector(props: { el: ImageElement }) {
           />
         </Field>
         <Field label="Corner radius">
-          <NumberField value={props.el.borderRadius} min={0} max={100} unit="mm" onCommit={commit} onInput={(v) => set((el) => (el.borderRadius = v))} />
+          <NumberField
+            value={props.el.borderRadius}
+            min={0}
+            max={100}
+            unit="mm"
+            onCommit={commit}
+            onInput={(v) => set((el) => (el.borderRadius = v))}
+          />
         </Field>
       </div>
     </Section>
@@ -568,7 +723,7 @@ function ImageRuleEditor(props: { elementId: string; rule: ImageRule; onChange: 
     const t = target(slot);
     const dataUrl = await readImageFile(file);
     if (!t.live()) return;
-    applyPictures(t.side, t.id, [{ slot, ref: internImage(dataUrl) }]);
+    applyPictures(t.side, t.id, [{ slot, ref: internImage(dataUrl, file.name) }]);
   }
 
   async function bulkUpload(files: File[]) {
@@ -588,7 +743,7 @@ function ImageRuleEditor(props: { elementId: string; rule: ImageRule; onChange: 
       return [{ slot, file: files[i], t: target(slot) }];
     });
     const read = await Promise.all(pending.map(async (p) => ({ ...p, dataUrl: await readImageFile(p.file) })));
-    const done = read.filter((p) => p.t.live()).map((p) => ({ slot: p.slot, ref: internImage(p.dataUrl) }));
+    const done = read.filter((p) => p.t.live()).map((p) => ({ slot: p.slot, ref: internImage(p.dataUrl, p.file.name) }));
     applyPictures(side, id, done);
     const rule = (() => {
       const el = findElement(side, id);
@@ -640,7 +795,7 @@ function ImageRuleEditor(props: { elementId: string; rule: ImageRule; onChange: 
           hidden
           data-testid="bulk-upload"
           onChange={async (e) => {
-              const input = e.currentTarget; // null after the first await
+            const input = e.currentTarget; // null after the first await
             const files = [...(input.files ?? [])];
             input.value = '';
             if (files.length) await bulkUpload(files);
@@ -660,7 +815,7 @@ function ImageRuleEditor(props: { elementId: string; rule: ImageRule; onChange: 
         hidden
         data-testid="value-upload"
         onChange={async (e) => {
-              const input = e.currentTarget; // null after the first await
+          const input = e.currentTarget; // null after the first await
           const f = input.files?.[0];
           input.value = '';
           if (f) await upload({ kind: 'value', value: singleTarget }, f);
@@ -678,7 +833,9 @@ function ImageRuleEditor(props: { elementId: string; rule: ImageRule; onChange: 
                 {v || <em class="muted">(empty)</em>}
               </span>
               <span class="row gap-s">
-                <Button variant="outline" size="2xs"
+                <Button
+                  variant="outline"
+                  size="2xs"
                   class="btn tiny"
                   onClick={() => {
                     singleTarget = v;
@@ -688,7 +845,9 @@ function ImageRuleEditor(props: { elementId: string; rule: ImageRule; onChange: 
                   {props.rule.map[v] ? 'Replace' : 'Upload'}
                 </Button>
                 <Show when={props.rule.map[v]}>
-                  <Button variant="outline" size="2xs"
+                  <Button
+                    variant="outline"
+                    size="2xs"
                     class="btn tiny"
                     title="Remove this picture"
                     aria-label="Remove this picture"
@@ -715,7 +874,14 @@ function ImageRuleEditor(props: { elementId: string; rule: ImageRule; onChange: 
               {props.rule.fallback ? 'Replace' : 'Upload'}
             </Button>
             <Show when={props.rule.fallback}>
-              <Button variant="outline" size="2xs" class="btn tiny" title="Remove the fallback picture" aria-label="Remove the fallback picture" onClick={() => props.onChange({ ...props.rule, fallback: '' })}>
+              <Button
+                variant="outline"
+                size="2xs"
+                class="btn tiny"
+                title="Remove the fallback picture"
+                aria-label="Remove the fallback picture"
+                onClick={() => props.onChange({ ...props.rule, fallback: '' })}
+              >
                 <X aria-hidden="true" />
               </Button>
             </Show>
@@ -774,7 +940,13 @@ function ColorRuleEditor(props: { rule: ColorRule | null; onChange: (r: ColorRul
               )}
             </For>
             <label class="color-rule-row">
-              <Input size="sm" type="color" class="color" value={rule().fallback} onInput={(e) => props.onChange({ ...rule(), fallback: e.currentTarget.value })} />
+              <Input
+                size="sm"
+                type="color"
+                class="color"
+                value={rule().fallback}
+                onInput={(e) => props.onChange({ ...rule(), fallback: e.currentTarget.value })}
+              />
               <span class="val muted">Anything else</span>
             </label>
             <Button variant="outline" size="2xs" class="btn tiny" onClick={() => props.onChange(buildColorRule(rows(), rule().column))}>

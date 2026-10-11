@@ -1,4 +1,4 @@
-# Type-checks, builds and runs the Playwright suite on pull requests and
+# Type-checks, lints, checks formatting, builds and runs the Playwright suite on pull requests and
 # feature branches, so broken changes never reach main.
 name: CI
 
@@ -18,6 +18,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
       - run: npx playwright install --with-deps chromium
       - run: npm test
         env:

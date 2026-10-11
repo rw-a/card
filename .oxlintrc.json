@@ -1,0 +1,44 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "import", "jsx-a11y"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    // Solid assigns `let el!: HTMLElement` through `ref={el}`, which this rule cannot see.
+    "eslint/no-unassigned-vars": "off",
+    // Labels wrap Park UI components that render the real control.
+    "jsx-a11y/label-has-associated-control": ["error", { "controlComponents": ["Select", "Input", "Textarea"], "depth": 4 }],
+    // <output>/<fieldset> are not drop-in replacements for role="status"/role="group" here.
+    "jsx-a11y/prefer-tag-over-role": "off",
+    // The project targets ES2020, so toSorted()/toReversed() are not available.
+    "unicorn/no-array-sort": "off",
+    "unicorn/no-array-reverse": "off",
+    // Style preferences rather than likely bugs.
+    "unicorn/consistent-function-scoping": "off",
+    "unicorn/prefer-add-event-listener": "off",
+    "eslint/no-shadow": "off",
+    "eslint/no-underscore-dangle": "off",
+    // `import './styles.css'` is a deliberate side-effect import.
+    "import/no-unassigned-import": "off"
+  },
+  "env": {
+    "builtin": true,
+    "browser": true,
+    "es2022": true
+  },
+  // Generated code (Park UI CLI, Panda) and build output are not linted.
+  "ignorePatterns": ["dist/**", "styled-system/**", "src/components/park/**", "src/theme/**", "test-results/**", "playwright-report/**"],
+  "overrides": [
+    {
+      "files": ["tests/**", "*.config.ts", "*.config.cjs"],
+      "env": { "node": true }
+    },
+    {
+      // `export {}` makes a global declaration file a module so it can augment `Window`.
+      "files": ["**/*.d.ts"],
+      "rules": { "unicorn/require-module-specifiers": "off" }
+    }
+  ]
+}

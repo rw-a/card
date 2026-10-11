@@ -1,4 +1,5 @@
 import type {
+  AssetNames,
   AssetStore,
   ColorRule,
   ImageElement,
@@ -133,8 +134,7 @@ export function newImageElement(partial: Partial<ImageElement> = {}): ImageEleme
 export function defaultTemplate(headers: string[] = []): Template {
   const W = 100;
   const H = 140;
-  const find = (...cands: string[]) =>
-    headers.find((h) => cands.some((c) => h.toLowerCase().replace(/[^a-z]/g, '') === c)) ?? null;
+  const find = (...cands: string[]) => headers.find((h) => cands.some((c) => h.toLowerCase().replace(/[^a-z]/g, '') === c)) ?? null;
   const nameCol = find('name', 'fullname') ?? headers[0] ?? 'Name';
   const firstCol = find('firstname', 'first', 'givenname');
   const lastCol = find('lastname', 'last', 'surname', 'familyname');
@@ -223,6 +223,7 @@ export function defaultTemplate(headers: string[] = []): Template {
   return {
     version: TEMPLATE_VERSION,
     assets: {},
+    assetNames: {},
     card: { width: W, height: H, borderRadius: 3 },
     sidedness: 'single',
     sides: {
@@ -341,8 +342,22 @@ export function computeSheetLayout(template: Pick<Template, 'card' | 'page'>): S
 
 /** Deterministic, pleasant palette for auto-assigning colours to distinct values. */
 export const PALETTE = [
-  '#1f6feb', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316',
-  '#84cc16', '#06b6d4', '#a855f7', '#e11d48', '#0ea5e9', '#eab308', '#22c55e', '#6366f1',
+  '#1f6feb',
+  '#f59e0b',
+  '#10b981',
+  '#ef4444',
+  '#8b5cf6',
+  '#ec4899',
+  '#14b8a6',
+  '#f97316',
+  '#84cc16',
+  '#06b6d4',
+  '#a855f7',
+  '#e11d48',
+  '#0ea5e9',
+  '#eab308',
+  '#22c55e',
+  '#6366f1',
 ];
 
 export function distinctValues(rows: Row[], column: string, limit = 60): string[] {
@@ -493,6 +508,24 @@ export function internAsset(assets: AssetStore, url: string): string {
   return ASSET_PREFIX + id;
 }
 
+/** A file name fit to show and store: no folders, no surrounding spaces, not absurdly long. */
+export function cleanFileName(name: string): string {
+  const base = name.split(/[\\/]/).pop() ?? '';
+  return base.trim().slice(0, 120);
+}
+
+/**
+ * Remember the file name a stored picture was uploaded with. A picture that
+ * already has a name keeps it (the same picture uploaded again under another
+ * name is still one stored picture). Mutates `names`.
+ */
+export function nameAsset(names: AssetNames, ref: string, fileName: string) {
+  if (!isAssetRef(ref)) return;
+  const id = ref.slice(ASSET_PREFIX.length);
+  const name = cleanFileName(fileName);
+  if (name && !names[id]) names[id] = name;
+}
+
 /** Turn a reference (or a plain/legacy URL) into something an <img> can show. */
 export function imageUrl(assets: AssetStore | undefined, ref: string | null | undefined): string {
   if (!ref) return '';
@@ -522,14 +555,21 @@ export function imageRefsIn(t: Pick<Template, 'sides'>): string[] {
 
 /** Ids of stored pictures nothing refers to any more. */
 export function unusedAssetIds(t: Pick<Template, 'sides' | 'assets'>): string[] {
-  const used = new Set(imageRefsIn(t).filter(isAssetRef).map((r) => r.slice(ASSET_PREFIX.length)));
+  const used = new Set(
+    imageRefsIn(t)
+      .filter(isAssetRef)
+      .map((r) => r.slice(ASSET_PREFIX.length)),
+  );
   return Object.keys(t.assets).filter((id) => !used.has(id));
 }
 
-/** Remove unreferenced pictures. Mutates `t`; returns how many were removed. */
-export function pruneAssets(t: Pick<Template, 'sides' | 'assets'>): number {
+/** Remove unreferenced pictures, and the names of pictures that are gone. Mutates `t`; returns how many pictures were removed. */
+export function pruneAssets(t: Pick<Template, 'sides' | 'assets'> & { assetNames?: AssetNames }): number {
   const ids = unusedAssetIds(t);
   for (const id of ids) delete t.assets[id];
+  if (t.assetNames) {
+    for (const id of Object.keys(t.assetNames)) if (t.assets[id] === undefined) delete t.assetNames[id];
+  }
   return ids.length;
 }
 

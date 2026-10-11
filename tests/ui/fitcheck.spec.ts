@@ -319,3 +319,21 @@ test('a one-sided card does not name a side under the canvas or on the fit check
   await expect(page.locator('.canvas-caption')).not.toContainText('Front');
   await expect(page.getByTestId('fit-check-title')).toHaveText('Fit Check');
 });
+
+test('the Fit Check cards can be chosen from the keyboard, not just clicked', async ({ page }) => {
+  await loadSample(page);
+  const source = page.getByTestId('preview-source').locator('select');
+  const shortest = page.getByRole('button', { name: 'Preview the design with the shortest values' });
+  await expect(shortest).toHaveAttribute('tabindex', '0');
+  await shortest.focus();
+  await page.keyboard.press('Enter');
+  await expect(source).toHaveValue('shortest');
+
+  const longest = page.getByRole('button', { name: 'Preview the design with the longest values' });
+  await longest.focus();
+  const scrolledBefore = await page.evaluate(() => document.scrollingElement?.scrollTop ?? 0);
+  await page.keyboard.press(' ');
+  await expect(source).toHaveValue('longest');
+  expect(await page.evaluate(() => document.scrollingElement?.scrollTop ?? 0)).toBe(scrolledBefore); // Space does not scroll the page
+  await expect(longest).toBeFocused();
+});

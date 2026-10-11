@@ -1,7 +1,19 @@
 import { Check, ChevronRight, TriangleAlert } from 'lucide-solid';
-import { For, Show, createEffect, createMemo, createSignal, onCleanup, onMount } from 'solid-js';
+import { For, Show, createEffect, createMemo, createSignal, on, onCleanup, onMount } from 'solid-js';
 import { PX_PER_MM, elementLabel } from '../lib/template';
-import { activeColumns, activeDesign, activeSide, extremes, ignoreEmpty, previewSource, rows, setIgnoreEmpty, setPreviewSource, setSelectedId, template } from '../lib/store';
+import {
+  activeColumns,
+  activeDesign,
+  activeSide,
+  extremes,
+  ignoreEmpty,
+  previewSource,
+  rows,
+  setIgnoreEmpty,
+  setPreviewSource,
+  setSelectedId,
+  template,
+} from '../lib/store';
 import { editingLabel } from '../lib/sides';
 import { fitProblem, type FitStatus, type Row, type SideId } from '../lib/types';
 import Card from './Card';
@@ -63,11 +75,7 @@ export default function Previews() {
       window.removeEventListener('resize', fit);
     });
   });
-  createEffect(() => {
-    template.card.width;
-    template.card.height;
-    fit();
-  });
+  createEffect(on(() => [template.card.width, template.card.height], fit));
 
   const hasData = () => rows().length > 0;
   /** The canvas is filled from the same shortest/median/longest rows when its "Preview with" is set to one of them. */
@@ -84,7 +92,9 @@ export default function Previews() {
     <section class="previews">
       <header class="previews-head">
         <div class="previews-title">
-          <Heading as="h3" textStyle="md" color="fg.default" data-testid="fit-check-title">Fit Check{template.sidedness === 'single' ? '' : ` — ${sideLabel()}`}</Heading>
+          <Heading as="h3" textStyle="md" color="fg.default" data-testid="fit-check-title">
+            Fit Check{template.sidedness === 'single' ? '' : ` — ${sideLabel()}`}
+          </Heading>
         </div>
         <p class="muted small">
           <Show when={hasData()} fallback={<>Load a CSV to see your layout filled with the shortest, median and longest values of each field.</>}>
@@ -166,7 +176,11 @@ function PreviewCard(props: { side: SideId; variant: Variant; zoom: number; enab
   const [rawFitMap, setFitMap] = createSignal<Map<string, FitStatus>>(new Map());
   /** Results for layers that still exist and are shown on this side. */
   const fitMap = createMemo(() => {
-    const visible = new Set(activeDesign().elements.filter((e) => !e.hidden).map((e) => e.id));
+    const visible = new Set(
+      activeDesign()
+        .elements.filter((e) => !e.hidden)
+        .map((e) => e.id),
+    );
     return new Map([...rawFitMap()].filter(([id]) => visible.has(id)));
   });
   const names = (pick: (s: FitStatus) => boolean) =>
@@ -178,22 +192,39 @@ function PreviewCard(props: { side: SideId; variant: Variant; zoom: number; enab
   const overflowNames = createMemo(() => names((s) => s.overflow));
   const clippedNames = createMemo(() => names((s) => s.clipped && !s.overflow));
   const hasProblem = () => fitMap().size > 0;
+  /** Show the canvas with this preview's values (the same as choosing it under "Preview with"). */
+  const useTheseValues = () => {
+    setPreviewSource({ type: props.variant.key });
+    setSelectedId(null);
+  };
   const w = () => template.card.width * PX_PER_MM * props.zoom;
   const h = () => template.card.height * PX_PER_MM * props.zoom;
 
   return (
-    <SurfaceCard.Root class={`preview${hasProblem() ? ' has-overflow' : ''}${!props.enabled ? ' disabled' : ''}`} data-testid={`preview-${props.variant.key}`}>
+    <SurfaceCard.Root
+      class={`preview${hasProblem() ? ' has-overflow' : ''}${!props.enabled ? ' disabled' : ''}`}
+      data-testid={`preview-${props.variant.key}`}
+    >
       <header>
-        <Heading as="h4" textStyle="sm" color="fg.default">{props.variant.title}</Heading>
+        <Heading as="h4" textStyle="sm" color="fg.default">
+          {props.variant.title}
+        </Heading>
         <span class="muted small">{props.variant.blurb}</span>
       </header>
       <div
         class="preview-stage"
         style={{ width: `${w()}px`, height: `${h()}px` }}
         title="Click to edit the design with these values"
-        onClick={() => {
-          setPreviewSource({ type: props.variant.key });
-          setSelectedId(null);
+        // A div with a button role rather than a <button>: a button's own font and alignment
+        // styles would cascade into the badge and change how its text measures.
+        role="button"
+        tabIndex={0}
+        aria-label={`Preview the design with the ${props.variant.title.toLowerCase()} values`}
+        onClick={useTheseValues}
+        onKeyDown={(e) => {
+          if (e.key !== 'Enter' && e.key !== ' ') return;
+          e.preventDefault(); // Space would otherwise scroll the page
+          useTheseValues();
         }}
       >
         <div style={{ transform: `scale(${props.zoom})`, 'transform-origin': '0 0' }}>
@@ -216,13 +247,24 @@ function PreviewCard(props: { side: SideId; variant: Variant; zoom: number; enab
       </div>
       <footer class="small" data-testid="preview-status">
         <Show when={props.enabled}>
-          <Show when={hasProblem()} fallback={<span class="ok"><Check size={14} class="preview-status-icon" aria-hidden="true" /> Everything fits</span>}>
+          <Show
+            when={hasProblem()}
+            fallback={
+              <span class="ok">
+                <Check size={14} class="preview-status-icon" aria-hidden="true" /> Everything fits
+              </span>
+            }
+          >
             <span class="warn-text">
-              <Show when={overflowNames().length > 0}><TriangleAlert size={14} class="preview-status-icon" aria-hidden="true" /> Overflows: {overflowNames().join(', ')}</Show>
+              <Show when={overflowNames().length > 0}>
+                <TriangleAlert size={14} class="preview-status-icon" aria-hidden="true" /> Overflows: {overflowNames().join(', ')}
+              </Show>
               <Show when={overflowNames().length > 0 && clippedNames().length > 0}>
                 <br />
               </Show>
-              <Show when={clippedNames().length > 0}><TriangleAlert size={14} class="preview-status-icon" aria-hidden="true" /> Cut off by card edge: {clippedNames().join(', ')}</Show>
+              <Show when={clippedNames().length > 0}>
+                <TriangleAlert size={14} class="preview-status-icon" aria-hidden="true" /> Cut off by card edge: {clippedNames().join(', ')}
+              </Show>
             </span>
           </Show>
         </Show>

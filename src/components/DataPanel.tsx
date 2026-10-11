@@ -69,10 +69,12 @@ export default function DataPanel() {
           <div class="dropzone-icon" aria-hidden="true">
             <Upload size={40} />
           </div>
-          <Heading as="h2" textStyle="xl" color="fg.default">Drop Your CSV Here</Heading>
+          <Heading as="h2" textStyle="xl" color="fg.default">
+            Drop Your CSV Here
+          </Heading>
           <p class="muted">
-            First row must be the column headers (e.g. <code>Name, Accommodation, Group</code>). Comma, semicolon and tab separated files all
-            work. Nothing is uploaded anywhere — everything stays in your browser.
+            First row must be the column headers (e.g. <code>Name, Accommodation, Group</code>). Comma, semicolon and tab separated files all work.
+            Nothing is uploaded anywhere — everything stays in your browser.
           </p>
           <div class="row gap">
             <Button size="md" class="btn primary" onClick={() => fileInput.click()}>
@@ -86,6 +88,8 @@ export default function DataPanel() {
             </Button>
           </div>
           <Show when={pasteOpen()}>
+            {/* Only keeps clicks inside the box from reaching the drop zone behind it; not an interaction of its own. */}
+            {/* oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
             <div class="paste-box" onClick={(e) => e.stopPropagation()}>
               <Textarea
                 class="input"
@@ -95,7 +99,8 @@ export default function DataPanel() {
                 onInput={(e) => setPasteText(e.currentTarget.value)}
               />
               <div class="row gap">
-                <Button size="md"
+                <Button
+                  size="md"
                   class="btn primary"
                   disabled={!pasteText().trim()}
                   onClick={() => {
@@ -139,10 +144,14 @@ export default function DataPanel() {
                 }
               >
                 <p class="muted small">
-                  Columns used by the current template: {' '}
+                  Columns used by the current template:{' '}
                   <Show when={usedColumns().length > 0} fallback={<em>none yet</em>}>
                     <For each={usedColumns()}>
-                      {(c) => <Badge class={ds().headers.includes(c) ? 'chip' : 'chip missing'} colorPalette={ds().headers.includes(c) ? 'gray' : 'red'}>{c}</Badge>}
+                      {(c) => (
+                        <Badge class={ds().headers.includes(c) ? 'chip' : 'chip missing'} colorPalette={ds().headers.includes(c) ? 'gray' : 'red'}>
+                          {c}
+                        </Badge>
+                      )}
                     </For>
                   </Show>
                   <Show when={usedColumns().some((c) => !ds().headers.includes(c))}>
@@ -192,8 +201,8 @@ export default function DataPanel() {
                 }
               >
                 <p class="muted small">
-                  These are the values the <strong>Shortest</strong>, <strong>Median</strong> and <strong>Longest</strong> previews use. Each column is
-                  picked independently, so the "longest" card combines the longest value of every field at once — the worst case for your layout.
+                  These are the values the <strong>Shortest</strong>, <strong>Median</strong> and <strong>Longest</strong> previews use. Each column
+                  is picked independently, so the "longest" card combines the longest value of every field at once — the worst case for your layout.
                 </p>
                 <div class="table-wrap">
                   <Table.Root class="table stats">

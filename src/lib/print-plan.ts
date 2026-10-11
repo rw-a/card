@@ -76,7 +76,12 @@ export function expandBadges(rowIndexes: number[], copies: number): BadgeInstanc
 }
 
 /** Top-left of a card slot (row-major) on the front of a sheet. */
-export function slotPosition(layout: SheetLayout, card: CardGeometry, page: Pick<PageSettings, 'gapX' | 'gapY'>, slot: number): { x: number; y: number } {
+export function slotPosition(
+  layout: SheetLayout,
+  card: CardGeometry,
+  page: Pick<PageSettings, 'gapX' | 'gapY'>,
+  slot: number,
+): { x: number; y: number } {
   const col = slot % layout.cols;
   const row = Math.floor(slot / layout.cols);
   return { x: layout.offsetX + col * (card.width + page.gapX), y: layout.offsetY + row * (card.height + page.gapY) };
@@ -87,10 +92,7 @@ export function reflectForDuplex(layout: SheetLayout, card: CardGeometry, pos: {
   return { x: layout.pageWidth - pos.x - card.width, y: pos.y };
 }
 
-export function planPrint(
-  t: Pick<Template, 'card' | 'page' | 'sidedness'>,
-  rowIndexes: number[],
-): PrintPlan {
+export function planPrint(t: Pick<Template, 'card' | 'page' | 'sidedness'>, rowIndexes: number[]): PrintPlan {
   const layout = computeSheetLayout(t);
   const mode = printMode(t);
   const instances = expandBadges(rowIndexes, t.page.copies);
@@ -170,7 +172,12 @@ export function planPrint(
       sheetIndex,
       face: 'back',
       guides: false,
-      placements: chunk.map((b, slot) => ({ instanceIndex: b.instanceIndex, side: 'back', slotIndex: slot, ...reflectForDuplex(layout, t.card, at(slot)) })),
+      placements: chunk.map((b, slot) => ({
+        instanceIndex: b.instanceIndex,
+        side: 'back',
+        slotIndex: slot,
+        ...reflectForDuplex(layout, t.card, at(slot)),
+      })),
     });
   }
   return { ...base, badgesPerSheet: S, pages, physicalSheetCount: sheetIndex };

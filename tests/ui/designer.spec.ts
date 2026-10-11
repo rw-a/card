@@ -262,10 +262,14 @@ test.describe('Designer – layers panel', () => {
     const names = () => page.locator('[data-testid="layer"]').evaluateAll((els) => els.map((e) => e.getAttribute('data-name')));
     expect(await names()).toEqual(['Group', 'Group band', 'Accommodation', 'Accommodation label', 'Name', 'Camp title', 'Header band']);
     await layer(page, 'Name').hover();
-    await layer(page, 'Name').getByTitle(/Move up/).click();
+    await layer(page, 'Name')
+      .getByTitle(/Move up/)
+      .click();
     expect(await names()).toEqual(['Group', 'Group band', 'Accommodation', 'Name', 'Accommodation label', 'Camp title', 'Header band']);
     const t = await getTemplate(page);
-    expect(t.sides.front.elements.map((e) => e.name).indexOf('Name')).toBeGreaterThan(t.sides.front.elements.map((e) => e.name).indexOf('Accommodation label'));
+    expect(t.sides.front.elements.map((e) => e.name).indexOf('Name')).toBeGreaterThan(
+      t.sides.front.elements.map((e) => e.name).indexOf('Accommodation label'),
+    );
   });
 
   test('adds a CSV field, static text, a shape and an image', async ({ page }) => {
@@ -490,7 +494,9 @@ test.describe('Designer – inspector', () => {
     const headingWeight = await settings.getByTestId('background-heading').evaluate((e) => +getComputedStyle(e).fontWeight);
     const labelWeight = await settings.locator('[data-field="Background Colour"] .field-label').evaluate((e) => +getComputedStyle(e).fontWeight);
     expect(headingWeight).toBeGreaterThan(labelWeight);
-    expect((await settings.getByTestId('background-heading').boundingBox())!.y).toBeLessThan((await settings.locator('[data-field="Background Colour"]').boundingBox())!.y);
+    expect((await settings.getByTestId('background-heading').boundingBox())!.y).toBeLessThan(
+      (await settings.locator('[data-field="Background Colour"]').boundingBox())!.y,
+    );
     await expect(page.locator('.side.right').getByRole('heading', { name: 'Card Background' })).toHaveCount(0);
     const radiusBox = (await settings.locator('[data-field="Corner Radius"]').boundingBox())!;
     const backgroundFieldBox = (await settings.locator('[data-field="Background Colour"]').boundingBox())!;
@@ -555,7 +561,7 @@ test.describe('Designer – inspector', () => {
 
   test('import JSON replaces the design and discards an old card name', async ({ page }) => {
     await loadSample(page);
-    const t = { ...await getTemplate(page), name: 'Imported' };
+    const t = { ...(await getTemplate(page)), name: 'Imported' };
     t.card.width = 86;
     t.sides.front.elements = t.sides.front.elements.slice(0, 2);
     await page.locator('input[type=file][accept*="json"]').setInputFiles({
@@ -599,5 +605,50 @@ test.describe('Designer – inspector', () => {
     await expect(page.locator('.side.right')).toBeVisible();
     await goTo(page, 'print');
     await expect(page.locator('.sheet').first()).toBeVisible();
+  });
+});
+
+test.describe('Layers from the keyboard', () => {
+  test('layers can be selected with Tab, Enter and Space, after which the shortcuts work', async ({ page }) => {
+    await loadSample(page);
+    const nameRow = layer(page, 'Name');
+    const select = nameRow.locator('.layer-select');
+    await expect(select).toHaveJSProperty('tagName', 'BUTTON');
+    await expect(select).toHaveJSProperty('tabIndex', 0);
+    await expect(select).not.toHaveAttribute('aria-current');
+
+    // Reach it with Tab from the last icon of the row above it (the list is top-most first)
+    await layer(page, 'Accommodation label').getByRole('button', { name: 'Hide Accommodation label', exact: true }).focus();
+    await page.keyboard.press('Tab');
+    await expect(select).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(nameRow).toHaveClass(/active/);
+    await expect(select).toHaveAttribute('aria-current', 'true');
+    await expect(page.locator('.side.right')).toContainText('Text Box');
+    await expect(nameRow.locator('.layer-actions')).toHaveCSS('opacity', '1'); // its action icons show while focused
+
+    // The usual shortcuts act on the layer chosen from the keyboard
+    const x = (await getElement(page, 'Name')).x;
+    await page.keyboard.press('ArrowRight');
+    await waitForElement(page, 'Name', (el) => el.x === x + 1);
+
+    // Space selects too, and moves the selection
+    const group = layer(page, 'Group');
+    await group.locator('.layer-select').focus();
+    await page.keyboard.press(' ');
+    await expect(group).toHaveClass(/active/);
+    await expect(nameRow).not.toHaveClass(/active/);
+    await expect(select).not.toHaveAttribute('aria-current');
+  });
+
+  test('clicking anywhere on a layer row still selects it, and its icons still do their own thing', async ({ page }) => {
+    await loadSample(page);
+    const row = layer(page, 'Name');
+    const box = (await row.boundingBox())!;
+    await page.mouse.click(box.x + 4, box.y + box.height / 2); // the very left edge of the row
+    await expect(row).toHaveClass(/active/);
+    await row.getByRole('button', { name: 'Hide Name', exact: true }).click();
+    expect((await getElement(page, 'Name')).hidden).toBe(true);
+    await expect(row).toHaveClass(/active/);
   });
 });

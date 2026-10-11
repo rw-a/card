@@ -62,16 +62,22 @@ export function field(page: Page, label: string): Locator {
 
 /** Choose through the visible Park UI menu rather than its hidden form select. */
 export async function selectOption(page: Page, select: Locator, value: string | { label: string }) {
-  const label = typeof value === 'string'
-    ? await select.locator('option').evaluateAll((options, selected) => (options.find((o) => (o as HTMLOptionElement).value === selected) as HTMLOptionElement)?.textContent ?? '', value)
-    : value.label;
+  const label =
+    typeof value === 'string'
+      ? await select
+          .locator('option')
+          .evaluateAll(
+            (options, selected) => (options.find((o) => (o as HTMLOptionElement).value === selected) as HTMLOptionElement)?.textContent ?? '',
+            value,
+          )
+      : value.label;
   const root = select.locator('..');
   await root.getByRole('combobox').click();
   await page.getByRole('option', { name: label, exact: true }).click();
 }
 
 export async function setChecked(control: Locator, checked: boolean) {
-  if (await control.isChecked() !== checked) await control.locator('..').click();
+  if ((await control.isChecked()) !== checked) await control.locator('..').click();
   await expect(control).toBeChecked({ checked });
 }
 
@@ -256,7 +262,10 @@ export async function setSides(page: Page, mode: 'single' | 'same' | 'different'
 
 /** Switch the canvas to the front or back (different-sides mode). */
 export async function editSide(page: Page, side: SideId) {
-  await page.getByTestId('side-switcher').getByText(side === 'front' ? 'Front' : 'Back', { exact: true }).click();
+  await page
+    .getByTestId('side-switcher')
+    .getByText(side === 'front' ? 'Front' : 'Back', { exact: true })
+    .click();
   await expect(page.getByTestId('canvas-side')).toHaveText(side === 'front' ? 'Front' : 'Back');
 }
 

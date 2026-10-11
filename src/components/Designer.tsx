@@ -61,7 +61,11 @@ export default function Designer() {
   const [rawFitMap, setFitMap] = createSignal<Map<string, FitStatus>>(new Map());
   /** Ignore results for layers that were deleted or hidden since they were measured. */
   const fitMap = createMemo(() => {
-    const visible = new Set(activeDesign().elements.filter((e) => !e.hidden).map((e) => e.id));
+    const visible = new Set(
+      activeDesign()
+        .elements.filter((e) => !e.hidden)
+        .map((e) => e.id),
+    );
     return new Map([...rawFitMap()].filter(([id]) => visible.has(id)));
   });
   const [canvasSize, setCanvasSize] = createSignal({ width: 0, height: 0 });
@@ -72,8 +76,7 @@ export default function Designer() {
 
   const cardW = () => template.card.width;
   const cardH = () => template.card.height;
-  const canPan = () =>
-    cardW() * PX_PER_MM * zoom() > canvasSize().width || cardH() * PX_PER_MM * zoom() > canvasSize().height;
+  const canPan = () => cardW() * PX_PER_MM * zoom() > canvasSize().width || cardH() * PX_PER_MM * zoom() > canvasSize().height;
 
   function fitZoom() {
     if (!canvasArea) return;
@@ -173,7 +176,15 @@ export default function Designer() {
     const el = selectedElement();
     if (!el || e.button !== 0 || drag || panMode()) return;
     e.stopPropagation();
-    beginDrag(e, { kind: 'resize', dir, side: activeSide(), id: el.id, startX: e.clientX, startY: e.clientY, orig: { x: el.x, y: el.y, w: el.w, h: el.h } });
+    beginDrag(e, {
+      kind: 'resize',
+      dir,
+      side: activeSide(),
+      id: el.id,
+      startX: e.clientX,
+      startY: e.clientY,
+      orig: { x: el.x, y: el.y, w: el.w, h: el.h },
+    });
   }
 
   function beginDrag(e: PointerEvent, state: Omit<DragState, 'pointerId'>) {
@@ -288,7 +299,13 @@ export default function Designer() {
       redo();
       return;
     }
-    if (isTyping(e) || (e.target as HTMLElement)?.closest('[data-scope="select"][data-part="trigger"], [data-scope="select"][data-part="content"], [data-scope="segment-group"][data-part="item"], [data-scope="splitter"][data-part="resize-trigger"], [data-scope="accordion"][data-part="item-trigger"]')) return;
+    if (
+      isTyping(e) ||
+      (e.target as HTMLElement)?.closest(
+        '[data-scope="select"][data-part="trigger"], [data-scope="select"][data-part="content"], [data-scope="segment-group"][data-part="item"], [data-scope="splitter"][data-part="resize-trigger"], [data-scope="accordion"][data-part="item-trigger"]',
+      )
+    )
+      return;
     const el = selectedElement();
     if (!el) return;
     if (e.key === 'Escape') {
@@ -425,13 +442,25 @@ export default function Designer() {
             <Toggle checked={panMode()} onChange={setPanMode} label="Drag to Pan" title="Drag the canvas to pan" />
             <span class="sep" />
             <span class="zoom-controls" role="group" aria-label="Zoom">
-              <IconButton variant="outline" size="xs" class="btn icon" title="Zoom out" onClick={() => setZoom((z) => clamp(round(z - 0.1, 0.05), 0.25, 4))}>
+              <IconButton
+                variant="outline"
+                size="xs"
+                class="btn icon"
+                title="Zoom out"
+                onClick={() => setZoom((z) => clamp(round(z - 0.1, 0.05), 0.25, 4))}
+              >
                 <Minus aria-hidden="true" />
               </IconButton>
               <Button variant="outline" size="2xs" class="btn tiny" title="Fit to view" onClick={fitZoom}>
                 {Math.round(zoom() * 100)}%
               </Button>
-              <IconButton variant="outline" size="xs" class="btn icon" title="Zoom in" onClick={() => setZoom((z) => clamp(round(z + 0.1, 0.05), 0.25, 4))}>
+              <IconButton
+                variant="outline"
+                size="xs"
+                class="btn icon"
+                title="Zoom in"
+                onClick={() => setZoom((z) => clamp(round(z + 0.1, 0.05), 0.25, 4))}
+              >
                 <Plus aria-hidden="true" />
               </IconButton>
             </span>
@@ -444,11 +473,23 @@ export default function Designer() {
           class="editor-split"
           orientation="vertical"
           defaultSize={['1fr', '300px']}
-          panels={[{ id: 'editor', minSize: '180px' }, { id: 'previews', minSize: '100px', resizeBehavior: 'preserve-pixel-size' }]}
+          panels={[
+            { id: 'editor', minSize: '180px' },
+            { id: 'previews', minSize: '100px', resizeBehavior: 'preserve-pixel-size' },
+          ]}
           keyboardResizeBy={20}
           gap="0"
         >
-          <Splitter.Panel id="editor" class="editor-panel" p="0" borderWidth="0" borderRadius="0" flexDirection="column" minHeight="0" overflow="hidden">
+          <Splitter.Panel
+            id="editor"
+            class="editor-panel"
+            p="0"
+            borderWidth="0"
+            borderRadius="0"
+            flexDirection="column"
+            minHeight="0"
+            overflow="hidden"
+          >
             <div
               ref={canvasArea}
               class="canvas-area"
@@ -543,18 +584,20 @@ export default function Designer() {
               <div ref={canvasCaption} class="canvas-caption muted small">
                 {/* Name the side only when there is more than one face. */}
                 <Show when={template.sidedness !== 'single'}>
-                  <strong class="canvas-side" data-testid="canvas-side">{editingLabel(template, activeSide())}</strong>
+                  <strong class="canvas-side" data-testid="canvas-side">
+                    {editingLabel(template, activeSide())}
+                  </strong>
                   {' · '}
                 </Show>
                 <span class="caption-desktop">
-                  {cardW()} × {cardH()} mm · drag to move, drag handles to resize (Shift = keep ratio) · arrows nudge 1 mm · Delete removes · double-click text to edit
+                  {cardW()} × {cardH()} mm · drag to move, drag handles to resize (Shift = keep ratio) · arrows nudge 1 mm · Delete removes ·
+                  double-click text to edit
                 </span>
                 <span class="caption-mobile">
                   {cardW()} × {cardH()} mm · drag a box to move it · drag its handles to resize
                 </span>
               </div>
             </div>
-
           </Splitter.Panel>
           <Splitter.ResizeTrigger id="editor:previews" class="previews-divider" aria-label="Resize card previews and template editor">
             <GripHorizontal size={12} aria-hidden="true" />
