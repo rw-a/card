@@ -1,0 +1,12 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  // Matches the style the code was already written in (longest lines ~150 characters).
+  "printWidth": 150,
+  "singleQuote": true,
+  "semi": true,
+  "trailingComma": "all",
+  "arrowParens": "always",
+  // Generated code keeps the Park UI CLI's own style so it can be regenerated cleanly;
+  // the legacy template fixtures are kept byte-for-byte as older versions saved them.
+  "ignorePatterns": ["src/components/park/**", "src/theme/**", "tests/fixtures/**", "styled-system/**", "dist/**", "package-lock.json"]
+}

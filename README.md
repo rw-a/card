@@ -60,6 +60,24 @@ npm run preview    # serves the production build
 
 Node 22 is recommended (see `.nvmrc`).
 
+## Linting and formatting
+
+The project uses [oxlint](https://oxc.rs/docs/guide/usage/linter) and
+[oxfmt](https://oxc.rs/docs/guide/usage/formatter) from the Oxc toolchain:
+
+```bash
+npm run lint           # oxlint: correctness errors fail, suspicious patterns warn
+npm run lint:fix       # apply oxlint's safe fixes
+npm run format         # oxfmt: format everything in place
+npm run format:check   # report unformatted files without changing them
+```
+
+Settings live in `.oxlintrc.json` and `.oxfmtrc.json` (each rule that is turned off has a comment
+saying why). Formatting follows the existing style: single quotes, semicolons, trailing commas and
+150-character lines. Generated Park UI components (`src/components/park/`, `src/theme/`), Panda's
+`styled-system/` and the legacy template fixtures in `tests/fixtures/` are left alone by both tools.
+CI runs `npm run lint` and `npm run format:check` on every pull request.
+
 ## UI components and styling
 
 The interface uses Park UI's Solid components, built on Ark UI, with the default

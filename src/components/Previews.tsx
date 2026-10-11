@@ -1,5 +1,5 @@
 import { Check, ChevronRight, TriangleAlert } from 'lucide-solid';
-import { For, Show, createEffect, createMemo, createSignal, onCleanup, onMount } from 'solid-js';
+import { For, Show, createEffect, createMemo, createSignal, on, onCleanup, onMount } from 'solid-js';
 import { PX_PER_MM, elementLabel } from '../lib/template';
 import { activeColumns, activeDesign, activeSide, extremes, ignoreEmpty, previewSource, rows, setIgnoreEmpty, setPreviewSource, setSelectedId, template } from '../lib/store';
 import { editingLabel } from '../lib/sides';
@@ -63,11 +63,7 @@ export default function Previews() {
       window.removeEventListener('resize', fit);
     });
   });
-  createEffect(() => {
-    template.card.width;
-    template.card.height;
-    fit();
-  });
+  createEffect(on(() => [template.card.width, template.card.height], fit));
 
   const hasData = () => rows().length > 0;
   /** The canvas is filled from the same shortest/median/longest rows when its "Preview with" is set to one of them. */

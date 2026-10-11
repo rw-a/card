@@ -86,6 +86,8 @@ export default function DataPanel() {
             </Button>
           </div>
           <Show when={pasteOpen()}>
+            {/* Only keeps clicks inside the box from reaching the drop zone behind it; not an interaction of its own. */}
+            {/* oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
             <div class="paste-box" onClick={(e) => e.stopPropagation()}>
               <Textarea
                 class="input"

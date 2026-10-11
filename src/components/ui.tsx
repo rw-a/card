@@ -132,7 +132,7 @@ export function ColorField(props: { value: string; onInput: (v: string) => void;
 /** Best-effort conversion of a CSS colour to #rrggbb for the native colour input. */
 export function toHex(c: string): string {
   if (/^#[0-9a-f]{6}$/i.test(c)) return c;
-  if (/^#[0-9a-f]{3}$/i.test(c)) return '#' + [...c.slice(1)].map((ch) => ch + ch).join('');
+  if (/^#[0-9a-f]{3}$/i.test(c)) return '#' + c.slice(1).split('').map((ch) => ch + ch).join('');
   const ctx = document.createElement('canvas').getContext('2d');
   if (ctx) {
     ctx.fillStyle = '#000';
