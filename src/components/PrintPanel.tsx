@@ -285,11 +285,15 @@ export default function PrintPanel() {
                 </Show>
               </p>
               <Show when={altLayout().perPage > layout().perPage}>
-                <Notice class="notice small" style={{ margin: '4px 0 8px' }}>
-                  {template.page.landscape ? 'Portrait' : 'Landscape'} would fit {altLayout().perPage} per sheet.{' '}
-                  <Button variant="plain" size="md" class="link" onClick={() => updateTemplate((t) => (t.page.landscape = !t.page.landscape))}>
-                    Switch
-                  </Button>
+                <Notice class="notice tip small" style={{ margin: '4px 0 8px' }} data-testid="orientation-tip">
+                  <span class="tip-body">
+                    <span>
+                      {template.page.landscape ? 'Portrait' : 'Landscape'} would fit {altLayout().perPage} per sheet.
+                    </span>
+                    <Button variant="outline" size="xs" class="btn small" onClick={() => updateTemplate((t) => (t.page.landscape = !t.page.landscape))}>
+                      Switch
+                    </Button>
+                  </span>
                 </Notice>
               </Show>
             </Show>

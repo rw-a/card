@@ -307,6 +307,10 @@ input.color { width: 36px; min-width: 36px; padding: 2px; cursor: pointer; }
 .tip-body .btn {
   flex: 0 0 auto;
 }
+/* Where the tip wraps (narrow sidebars, small screens) the icon lines up with its first line. */
+.side .notice.tip {
+  align-items: flex-start;
+}
 @media (max-width: 640px) {
   .notice.tip {
     align-items: flex-start;

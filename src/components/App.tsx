@@ -57,7 +57,7 @@ export default function App() {
               Download the original
             </Button>{' '}
             <Show when={!n().savingPaused}>
-              <Button variant="plain" size="xs" class="link" onClick={dismissStartupNotice}>
+              <Button variant="outline" size="xs" class="btn small" onClick={dismissStartupNotice}>
                 Dismiss
               </Button>
             </Show>

@@ -111,7 +111,15 @@ test.describe('Print tab', () => {
     await goTo(page, 'print');
     await expect(summary(page)).toContainText('1 × 3 = 3 per sheet');
     await expect(summary(page)).toContainText('Landscape would fit 4 per sheet');
-    await summary(page).getByRole('button', { name: 'Switch' }).click();
+    // A real, outlined button – not link text the same colour as the notice – with the icon on the first line
+    const tip = page.getByTestId('orientation-tip');
+    const switchButton = tip.getByRole('button', { name: 'Switch' });
+    await expect(switchButton).toBeInViewport({ ratio: 1 });
+    await expect(switchButton).not.toHaveCSS('border-top-width', '0px');
+    const icon = (await tip.locator('svg').first().boundingBox())!;
+    const text = (await tip.getByText('Landscape would fit').boundingBox())!;
+    expect(Math.abs(icon.y - text.y)).toBeLessThan(4);
+    await switchButton.click();
     await expect(page.getByLabel('Landscape')).toBeChecked();
     await expect(summary(page)).toContainText('2 × 2 = 4 per sheet');
   });
