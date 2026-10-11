@@ -15,6 +15,7 @@ import {
   previewText,
   selectLayer,
   setField,
+  setLayerField,
   waitForElement,
   selectOption,
   setChecked,
@@ -138,7 +139,7 @@ test.describe('Fit check – overflow detection', () => {
   test('flags text that does not fit its box even at the minimum size', async ({ page }) => {
     await loadSample(page);
     await selectLayer(page, 'Name');
-    await setField(page, 'H', 6); // far too short for the longest name on two lines at the 12pt minimum
+    await setLayerField(page, 'Height', 6); // far too short for the longest name on two lines at the 12pt minimum
     await expect(previewStatus(page, 'longest')).toHaveText(/Overflows: Name/);
     // The median name fits on one line: it runs into the padding but nothing is cut off
     await expect(previewStatus(page, 'median')).toHaveText(/Everything fits/);
@@ -160,14 +161,14 @@ test.describe('Fit check – overflow detection', () => {
     for (const [label, value] of [
       ['X', 29],
       ['Y', 68],
-      ['W', 42],
-      ['H', 6],
+      ['Width', 42],
+      ['Height', 6],
       ['Rotation', 12],
       ['Opacity', 35],
       ['Size', 18],
       ['Min Shrinked Size', 8],
     ] as const) {
-      await setField(page, label, value);
+      await setLayerField(page, label, value);
     }
     for (const [field, value] of [
       ['Align', 'center'],
@@ -178,14 +179,14 @@ test.describe('Fit check – overflow detection', () => {
     await waitForElement(page, 'Text', (el) => el.kind === 'text' && el.align === 'center' && el.vAlign === 'middle');
     for (const v of VARIANTS) await expect(previewStatus(page, v)).toHaveText(/Everything fits/);
     // …while a box that really cuts the text off is still caught
-    await setField(page, 'H', 4);
+    await setLayerField(page, 'Height', 4);
     await expect(previewStatus(page, 'longest')).toHaveText(/Overflows: Text/);
   });
 
   test('lowering the minimum font size can make it fit again', async ({ page }) => {
     await loadSample(page);
     await selectLayer(page, 'Name');
-    await setField(page, 'H', 8); // two lines at the 12pt minimum no longer fit
+    await setLayerField(page, 'Height', 8); // two lines at the 12pt minimum no longer fit
     await expect(previewStatus(page, 'longest')).toHaveText(/Overflows: Name/);
     await setField(page, 'Min Shrinked Size', 5); // one line at ~9pt does
     await expect(previewStatus(page, 'longest')).toHaveText(/Everything fits/);
@@ -212,9 +213,9 @@ test.describe('Fit check – overflow detection', () => {
   test('a problem is cleared again when the box is made big enough', async ({ page }) => {
     await loadSample(page);
     await selectLayer(page, 'Name');
-    await setField(page, 'H', 6);
+    await setLayerField(page, 'Height', 6);
     await expect(previewStatus(page, 'longest')).toHaveText(/Overflows/);
-    await setField(page, 'H', 30);
+    await setLayerField(page, 'Height', 30);
     await expectAllFit(page);
     await expect(layer(page, 'Name').getByTestId('layer-problem')).toHaveCount(0);
   });
@@ -266,7 +267,7 @@ test.describe('Fit check – text cut off by the card edge (regression)', () => 
     await selectLayer(page, 'Name');
     await page.getByTitle('Left').click();
     await setField(page, 'X', 2);
-    await setField(page, 'W', 120); // right edge at 122 mm, but left-aligned text starts at 3 mm
+    await setLayerField(page, 'Width', 120); // right edge at 122 mm, but left-aligned text starts at 3 mm
     await expect(previewStatus(page, 'shortest')).toHaveText(/Everything fits/);
     await expect(previewStatus(page, 'median')).toHaveText(/Everything fits/);
     await expect(page.getByTestId('selection')).toHaveClass(/outside/);
@@ -323,7 +324,7 @@ test.describe('Fit check – text cut off by the card edge (regression)', () => 
   test('overflow and clipping are reported together when both apply', async ({ page }) => {
     await loadSample(page);
     await selectLayer(page, 'Name');
-    await setField(page, 'H', 6);
+    await setLayerField(page, 'Height', 6);
     await setField(page, 'X', 60);
     await expect(previewStatus(page, 'longest')).toHaveText(/Overflows: Name/);
     await selectOption(page, page.getByTestId('preview-source').locator('select'), 'longest');

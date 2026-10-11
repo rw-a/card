@@ -218,10 +218,10 @@ function ElementInspector(props: { el: TemplateElement }) {
           <Field label="Y">
             <NumberField value={props.el.y} unit="mm" onCommit={commit} onInput={(v) => set((el) => (el.y = v))} />
           </Field>
-          <Field label="W">
+          <Field label="Width">
             <NumberField value={props.el.w} min={1} unit="mm" onCommit={commit} onInput={(v) => set((el) => (el.w = v))} />
           </Field>
-          <Field label="H">
+          <Field label="Height">
             <NumberField value={props.el.h} min={1} unit="mm" onCommit={commit} onInput={(v) => set((el) => (el.h = v))} />
           </Field>
         </div>

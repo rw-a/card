@@ -14,6 +14,7 @@ import {
   openApp,
   selectLayer,
   setField,
+  setLayerField,
   waitForElement,
   selectOption,
   setChecked,
@@ -392,8 +393,8 @@ test.describe('Designer – inspector', () => {
     await selectLayer(page, 'Name');
     await setField(page, 'X', 10);
     await setField(page, 'Y', 50);
-    await setField(page, 'W', 80);
-    await setField(page, 'H', 20);
+    await setLayerField(page, 'Width', 80);
+    await setLayerField(page, 'Height', 20);
     await waitForElement(page, 'Name', (el) => el.x === 10 && el.y === 50 && el.w === 80 && el.h === 20);
     await expect(page.getByTestId('selection-label')).toContainText('80.0 × 20.0 mm');
   });
@@ -401,7 +402,7 @@ test.describe('Designer – inspector', () => {
   test('centre and full-width buttons', async ({ page }) => {
     await loadSample(page);
     await selectLayer(page, 'Name');
-    await setField(page, 'W', 50);
+    await setLayerField(page, 'Width', 50);
     await page.getByRole('button', { name: 'Centre horizontally' }).click();
     await waitForElement(page, 'Name', (el) => el.x === 25);
     await page.getByRole('button', { name: 'Centre vertically' }).click();

@@ -87,6 +87,14 @@ export async function setField(page: Page, label: string, value: string | number
   await input.fill(String(value));
 }
 
+/**
+ * Type into a field of the selected layer's settings (right-hand panel). Use this for
+ * Width and Height, whose labels Card Settings on the left also uses.
+ */
+export async function setLayerField(page: Page, label: string, value: string | number) {
+  await page.locator(`.side.right [data-field="${label}"]`).locator('input').first().fill(String(value));
+}
+
 /** Text of each text element currently rendered on the canvas card, in template order. */
 export function canvasTexts(page: Page): Promise<string[]> {
   return canvasCard(page)
