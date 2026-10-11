@@ -18,7 +18,8 @@
     "test:unit": "playwright test --project=unit",
     "test:ui": "playwright test --project=chromium",
     "test:headed": "playwright test --project=chromium --headed",
-    "test:report": "playwright show-report"
+    "test:report": "playwright show-report",
+    "screenshots": "playwright test --config=playwright.screenshots.config.ts"
   },
   "dependencies": {
     "@ark-ui/solid": "^5.39.3",

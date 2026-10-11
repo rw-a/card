@@ -1,307 +1,177 @@
 # Card Maker
 
-A static web app for making name cards and badges – for lanyards, desks or doors – for a camp (or any event).
-Upload a CSV, design one badge template with drag-and-drop, and print every card
-onto cut-ready sheets — straight from the browser, with nothing sent to a server.
+Card Maker turns a spreadsheet of people into printed name cards. Load a CSV file, design one
+card, and print a card for every row — ready to cut out and put into lanyard holders, on desks or
+on doors.
 
-Built with [SolidJS](https://www.solidjs.com/), [Park UI](https://park-ui.com/),
-[Panda CSS](https://panda-css.com/) and [Vite](https://vitejs.dev/), deployed to GitHub Pages automatically.
+**[Open Card Maker](https://rw-a.github.io/lanyard/)** — it runs in your browser; nothing to install.
 
-## What it does
+![The card designer with the sample data loaded](docs/screenshots/design.png)
 
-1. **Data** – drop in a CSV (comma, semicolon or tab separated; the first row is the headers).
-   You get a preview table plus, for every column, the shortest, median and longest value.
-2. **Design** – a canvas showing one badge at real proportions. Add text boxes bound to CSV
-   columns (`{{Name}}`, `Cabin {{Accommodation}}`…), fixed text, colour bands and a logo.
-   Drag to move, drag handles to resize, set fonts, alignment, colours, padding, borders.
-   Text boxes **shrink to fit** down to a minimum size you choose. Anything that _still_
-   doesn't fit its box, or that would be **cut off by the edge of the card**, is outlined in
-   red and named in the fit check. A shape or text box can be **coloured by a field**
-   (e.g. one colour per cabin), and an image can show a **different picture per value of a
-   field** — a bear for the Bears, a lion for the Lions. Name your files after the values
-   (`bears.png`, `lion.jpg`) and upload them all at once; a fallback picture covers the rest.
-3. **Fit check** – three live previews under the canvas, each built from _every field's_
-   shortest, median and longest value across the whole CSV. The "Longest" card is the
-   worst case for your layout; "Shortest" shows that short names still look balanced.
-4. **Print** – pick paper size (A4, A3, Letter, Legal or custom), orientation, margins and
-   gaps; the app lays the cards out, adds crop marks and prints (or saves as PDF) every
-   sheet. Print several copies of each badge, or just a few rows for reprints.
+## When to use it
 
-Badges can be **one-sided or double-sided** (see [Front and back](#front-and-back)).
+Card Maker is suited to any event where each person needs a card showing their own details:
 
-The template and roster are saved in your browser automatically and the template can be
-exported/imported as JSON. Exports use the filename `template.card-maker.json`.
+- camps, retreats and school trips (name, cabin, group, dietary needs)
+- conferences, workshops and volunteer days (name, organisation, role)
+- staff and visitor badges, desk and door signs
 
-## Where your work is saved
+Use it when the details already live in a spreadsheet and every card follows the same layout.
+Because each card is filled in from its row, there is no copying and pasting, and a change to the
+design applies to every card at once.
 
-Everything stays in your browser — nothing is uploaded anywhere. State is kept in
-**IndexedDB**, whose quota is a share of your disk (Chrome allows up to 60 % of it per site,
-Firefox 10 % up to 10 GB, Safari about 1 GB before asking), so templates with many pictures and
-rosters with tens of thousands of rows fit comfortably. The first time pictures are saved the
-app asks the browser to treat the site's storage as persistent so it is not cleaned up under
-disk pressure (Chrome decides silently, Firefox may show a prompt).
+Your data stays on your computer: the CSV, the design and any pictures are kept in your browser
+and never uploaded.
 
-If IndexedDB is unavailable (some private-browsing modes or locked-down browsers) the app falls
-back to localStorage, which only holds about 5 MB. If a save fails for any reason a
-banner appears at the top — export the template as JSON to keep it.
+## Key features
 
-Saved data is checked when the app starts. If it cannot be used (damaged, or saved by a different
-version of the app) everything saved is cleared, the app starts fresh, and a notice says so.
+- **Cards from a spreadsheet** — load a CSV file (or paste one) and place any column on the card.
+- **Visual designer** — text, shapes and pictures that you drag, resize and style on a card shown
+  at its real proportions, with undo, layers, snapping and keyboard shortcuts.
+- **Text that fits** — text shrinks automatically to fit its box, down to a minimum size you set.
+- **Fit check** — previews built from the shortest, median and longest values in your data show
+  straight away if any text is cut off.
+- **Colour per field value** — colour a band or text box by a column, e.g. one colour per group.
+- **Picture per field value** — show a different picture depending on a column, e.g. an animal per
+  group. Upload all pictures at once; they are matched to values by file name.
+- **Pictures from your data** — show a photo or logo whose web address is stored in a column.
+- **Double-sided cards** — the same design on both sides, or a different front and back.
+- **Print-ready sheets** — choose the paper size and margins; cards are laid out with crop marks
+  and can be printed or saved as a PDF. Print copies, or just some rows for reprints.
+- **Saved automatically** — your work is kept in the browser and can be exported as a file to
+  share or back up.
+- **Works on phones and tablets** as well as computers.
 
-Saving is debounced while you drag and flushed when you leave the page, so a reload right after
-an edit does not lose it.
+## Getting started
 
-## Run it locally
+1. **Data** — choose your CSV file, or paste the data. The first row must contain the column
+   names. To try Card Maker first, choose **Load sample data**.
+2. **Design** — edit the starter card: click an element to change it, drag it to move it, and add
+   text, shapes or pictures. Insert a column into text with `{{Column name}}`.
+3. **Print** — choose the paper and settings, check the preview, then choose
+   **Print / Save as PDF…**.
+
+## Preparing your data
+
+![The Data tab showing the loaded rows and column statistics](docs/screenshots/data.png)
+
+- Put one person per row; the column names become the fields you can place on the card.
+- Comma-, semicolon- and tab-separated files all work. In Excel use _File → Save As → CSV UTF-8_;
+  in Google Sheets use _File → Download → Comma-separated values_.
+- Empty cells are fine. The Data tab shows each column's shortest, median and longest value, which
+  helps spot entries that may not fit.
+
+## Designing a card
+
+- **Text** can mix fixed words with fields, e.g. `Cabin {{Accommodation}}`. Choose the font,
+  size, alignment, colour, background and border. With **Shrink to fit**, long values get a smaller
+  font, down to the minimum size you set.
+- **Shapes** are filled rectangles, useful for colour bands and frames.
+- **Pictures** can be the same on every card, chosen per field value, or taken from a column
+  containing image addresses. Large photos are reduced automatically.
+- **Card Settings** set the card size (with common presets), corner radius and background colour
+  or image.
+- **Preview with** shows the card filled in with any row, or with the shortest, median or longest
+  values.
+
+| Action                         | Shortcut                              |
+| ------------------------------ | ------------------------------------- |
+| Undo / redo                    | Ctrl+Z / Ctrl+Shift+Z (⌘ on Mac)      |
+| Move the selected element      | Arrow keys (Shift: 5 mm, Alt: 0.1 mm) |
+| Duplicate / delete             | Ctrl+D / Delete                       |
+| Deselect                       | Esc                                   |
+| Keep proportions when resizing | Hold Shift while dragging a corner    |
+| Move freely without snapping   | Hold Alt while dragging               |
+
+### Colour per field value
+
+Select a shape or text box and choose a column under **Colour by field**. Each value of that column
+gets its own colour, which you can change; **Anything else** covers values without one.
+
+![A colour band coloured by group](docs/screenshots/colour-by-field.png)
+
+### Picture per field value
+
+Add a picture and set **Picture source** to **Different picture per value of a field**, then choose
+the column. Upload a picture for each value, or choose **Upload for all values…** and select all the
+files at once: a file named `bears.png` is matched to the value "Bears". An optional fallback
+picture is used for any other value.
+
+![A picture chosen per group](docs/screenshots/picture-by-field.png)
+
+The same picture used in several places is stored only once. **Pictures Stored** lists each one
+with its file name and size.
+
+### Checking that everything fits
+
+The **Fit Check** below the canvas shows three versions of the card: every field at its shortest,
+median and longest value in your data. Text that is cut off by its box or by the edge of the card
+is outlined in red and named, so it can be fixed before printing. The Fit Check can be collapsed
+to give the canvas more room.
+
+![The Fit Check flagging a name that does not fit](docs/screenshots/fit-check.png)
+
+### Front and back
+
+Under **Sides** in Card Settings, choose:
+
+- **One Sided** — a front only.
+- **Double-Sided — Same on Both Sides** — one design printed on both sides.
+- **Double-Sided — Different on Each Side** — a separate back, edited with the **Front / Back**
+  switch above the canvas. The back starts as a copy of the front.
+
+Card size is shared by both sides; each side has its own background and elements. Both sides of a
+card are filled in from the same row.
+
+![Editing the back of a double-sided card](docs/screenshots/double-sided.png)
+
+## Printing
+
+![The Print tab with four cards per A4 sheet](docs/screenshots/print.png)
+
+1. Choose the paper size and orientation, and set the margin and the gaps between cards. The
+   summary shows how many cards fit on a sheet and how many sheets are needed.
+2. Under **What to Print**, set the number of copies, or list rows to reprint (e.g. `1-10, 14`).
+3. Choose **Print / Save as PDF…**. In the print dialog, set the scale to **100%**, margins to
+   **None**, and turn on **Background graphics** so colours print. Choose _Save as PDF_ to keep a
+   file.
+
+Double-sided cards can be printed in two ways:
+
+- **Separate Cutouts** — each card's front and back are printed side by side on one side of the
+  paper. Cut them out and place them back to back in the holder.
+- **Duplex Sheets** — fronts are printed on one side of the sheet and backs on the other. Print
+  double-sided, flipping on the long edge for portrait paper or the short edge for landscape. Use
+  **Print Test Sheet** first to check that the two sides line up on your printer.
+
+The default 100 × 140 mm card fits a standard A6 lanyard holder, four to an A4 sheet.
+
+## Saving and sharing
+
+Your data and design are saved in your browser automatically and are there when you return on the
+same computer and browser. To back up a design, move it to another computer or share it, use
+**Export JSON** and **Import JSON** under Template Files. If the browser cannot save (for example in
+some private windows), a notice says so; export the design to keep it.
+
+## On phones and tablets
+
+<img src="docs/screenshots/mobile.png" alt="Card Maker on a phone" width="300">
+
+All three steps work on small screens. The panels stack, and elements can be moved and resized by
+touch.
+
+## Running your own copy
+
+Card Maker is a static web app. To run it locally, install [Node.js](https://nodejs.org/) 22, then:
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173
-npm run build      # type-checks and builds to dist/
-npm run preview    # serves the production build
+npm run dev
 ```
 
-Node 22 is recommended (see `.nvmrc`).
+Pushing to the `main` branch of a GitHub repository with GitHub Pages enabled (Source: GitHub
+Actions) publishes it automatically. Development notes are in [AGENTS.md](AGENTS.md).
 
-## Linting and formatting
+## License
 
-The project uses [oxlint](https://oxc.rs/docs/guide/usage/linter) and
-[oxfmt](https://oxc.rs/docs/guide/usage/formatter) from the Oxc toolchain:
-
-```bash
-npm run lint           # oxlint: correctness errors fail, suspicious patterns warn
-npm run lint:fix       # apply oxlint's safe fixes
-npm run format         # oxfmt: format everything in place
-npm run format:check   # report unformatted files without changing them
-```
-
-Settings live in `.oxlintrc.json` and `.oxfmtrc.json` (each rule that is turned off has a comment
-saying why). Formatting follows the existing style: single quotes, semicolons, trailing commas and
-150-character lines. Generated Park UI components (`src/components/park/`, `src/theme/`) and Panda's
-`styled-system/` are left alone by both tools.
-CI runs `npm run lint` and `npm run format:check` on every pull request.
-
-Commits that only reformat code are listed in `.git-blame-ignore-revs`. GitHub's blame view skips
-them automatically; to make local `git blame` do the same, run once:
-
-```bash
-git config blame.ignoreRevsFile .git-blame-ignore-revs
-```
-
-## UI components and styling
-
-The interface uses Park UI's Solid components, built on Ark UI, with the default
-neutral theme, component recipes, sizes and variants. Component source lives in
-`src/components/park/`, and the theme lives in `src/theme/`. `src/components/ui.tsx`
-composes those components into the app's labelled fields and sections.
-
-Panda generates `styled-system/` during installation, builds and type checks. The
-directory is ignored by Git; regenerate it with `npm run prepare` if needed.
-`panda.config.ts` and `postcss.config.cjs` connect the theme to Vite. The generated
-Park components use Panda 2's `createSlotRecipeContext` API.
-
-`src/styles.css` contains the app layout, responsive rules and card canvas/print
-styles. Buttons, dropdowns, checkboxes, switches, tabs, tables and disclosures use
-Park UI's default styling. The preview divider uses Park UI's accessible splitter;
-the sidebar sections use its accordion component.
-
-## Deploy to GitHub Pages (automatic)
-
-1. Create a GitHub repository and push this folder to its `main` branch.
-2. In the repository go to **Settings → Pages** and under _Build and deployment_ set
-   **Source** to **GitHub Actions**.
-3. That's it. Every push to `main` runs `.github/workflows/deploy.yml`, which builds the app
-   and publishes it to `https://<your-user>.github.io/<repo>/`. The first run takes a minute
-   or two; the URL is shown in the workflow summary.
-
-The workflow uses `actions/configure-pages` to work out the base path, so it works for a
-project site (`/<repo>/`), a user site (`<user>.github.io`) and custom domains without
-changing anything.
-
-The deploy runs the full test suite first; a failing test blocks the publish. Pull requests
-and feature branches are type-checked, built and tested by `.github/workflows/ci.yml`, and
-the Playwright HTML report is attached to every run as an artifact.
-
-## Tests
-
-The project ships with a [Playwright](https://playwright.dev/) suite (about 275 tests) that
-runs against the production build:
-
-```bash
-npx playwright install chromium   # once
-npm test                          # unit + UI tests, headless
-npm run test:ui                   # UI tests only
-npm run test:headed               # watch the browser while tests run
-npm run test:report               # open the HTML report of the last run
-```
-
-- `tests/unit/` – fast Node-only tests of the pure modules (CSV parsing, shortest/median/longest
-  statistics, placeholder substitution, sheet-layout maths, colour and picture rules, the
-  content-addressed picture store, side resolvers, template validation, and print plans for every
-  mode, capacity and paper layout).
-- `tests/ui/` – end-to-end tests of the three tabs: CSV import by picker, drag-and-drop and paste;
-  front and back designs (the three sides modes, editing each side, undo across sides, uploads
-  that finish after a side switch); the designer (drag, resize, snapping, keyboard shortcuts,
-  undo/redo, layers, every inspector control, colour-by-field, import/export); images (fixed
-  pictures, downscaling, picture per value of a field with single and bulk upload, fallbacks,
-  image URLs from a column); the fit check, including regression tests that a text box pushed
-  past the card edge is reported as "cut off" instead of "fits"; deduplicated picture storage
-  (same picture → one stored copy, file names, pruning, export/import); the print tab
-  (paper sizes, margins, gaps, crop marks, copies, row ranges, separate cutouts and duplex
-  layouts, the print portal and the resulting PDF's page count, order and size); and persistence
-  (IndexedDB round trips, flush on reload, a 50,000-row roster, unusable saved data being cleared,
-  and the warning shown when the browser refuses to save).
-
-`playwright.config.ts` builds the app and serves it with `vite preview` automatically. If you
-already have a Chromium you want to use, point `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` at it.
-
-A hook is available in the browser console for debugging: `cardMaker.getTemplate()` returns
-the current template, `cardMaker.getEditor()` the side being edited and the
-selection, `cardMaker.getDataset()` the loaded CSV, and `cardMaker.storage` reads and
-writes the underlying IndexedDB store.
-
-## CSV tips
-
-- Put one person per row. Column names become the fields you can place on the badge.
-- Empty cells are fine. By default they are ignored when working out the shortest value
-  (switch off "Ignore empty cells" under the fit-check cards to see how a blank field looks).
-- Excel: _File → Save As → CSV UTF-8_. Google Sheets: _File → Download → CSV_.
-- If a column holds image URLs (e.g. photos), an Image element can read its source from it
-  ("Picture source → Image URL stored in a field").
-
-## Pictures per group
-
-Add an **Image** element and set _Picture source_ to **Different picture per value of a
-field**, then pick the field (e.g. `Group`). Every distinct value gets a row where you can
-upload a picture, or use **Upload for all values…** and select all your files at once: a
-file called `bears.png`, `Bear.jpg` or `bears (2).png` is matched to the value "Bears"
-(case, spaces, punctuation and a trailing "s" are ignored). Values without a picture show
-the optional _Anything else_ fallback, or nothing at all when printed.
-
-Uploaded pictures are stored inside the template, scaled down to at most 1200 px on the long
-side (SVGs are kept as-is), and **deduplicated by content**: the same picture used for several
-groups, on several image elements or as the card background is stored once, however many
-times it appears (`template.assets` holds each picture under a content hash, with the file name it
-was uploaded with, and elements refer to it by that id). Pictures nothing refers to any more are
-dropped at the next save. The _Pictures Stored_ section of the inspector lists each stored picture
-with a preview, its file name and its size (the same picture uploaded again under another name
-keeps its first name).
-
-When printing, the browser handles the rest: Chromium writes each distinct picture into the PDF
-once, so 100 badges with the same logo cost about as much as one.
-
-## Front and back
-
-Choose **Sides** in _Card Settings_:
-
-| Sides                                 | What you edit                                                       | What each badge gets      |
-| ------------------------------------- | ------------------------------------------------------------------- | ------------------------- |
-| One Sided                             | the front                                                           | a front                   |
-| Double-Sided — Same on Both Sides     | one design, labelled _Front & Back_                                 | that design on both faces |
-| Double-Sided — Different on Each Side | a front and a back, switched with **Front / Back** above the canvas | its own front and back    |
-
-- Size and corner radius are shared; each independently designed side has its own background
-  colour, background picture and layers. Both faces of a badge use the same CSV row.
-- The first time you choose different sides the back starts as a copy of the front. **Copy Front
-  to Back** and **Clear Back** (shown while editing the back) start it over; both ask first when
-  the back has content and both can be undone.
-- Switching to one-sided or same-on-both-sides keeps a separate back saved (with its pictures);
-  choosing different sides again brings it back exactly as it was.
-- The canvas, layers, inspector, background controls and _Fit Check_ all follow the side being
-  edited. A fit check result covers that side and that preview only, so switch sides to check both.
-- Undo/redo works across sides and shows the side whose content changed.
-
-## Printing double-sided badges
-
-**Copies of Each Badge** counts complete badges per person: a double-sided badge is one badge
-with two printed faces. The summary shows people, badges, printed faces, physical sheets and,
-for duplex, PDF pages. For 25 people, one copy, four card slots per sheet:
-
-| Output                         | Badges | Printed faces | Sheets | PDF pages |
-| ------------------------------ | -----: | ------------: | -----: | --------: |
-| One Sided                      |     25 |            25 |      7 |         7 |
-| Double-sided, Separate Cutouts |     25 |            50 |     13 |        13 |
-| Double-sided, Duplex Sheets    |     25 |            50 |      7 |        14 |
-
-Double-sided designs offer two **printing methods** on the Print tab (one-sided designs always
-print ordinary sheets):
-
-- **Separate Cutouts** (default) – each badge's front is printed with its back right beside it,
-  both upright, on one side of the paper. Print **one-sided**, cut out each pair and place them
-  back to back in the holder. With room for only one card per sheet, the front and back go on
-  two consecutive sheets.
-- **Duplex Sheets** – PDF pages alternate _sheet 1 front, sheet 1 back, sheet 2 front…_. The
-  backs are laid out for turning the sheet over **from left to right** (around its vertical axis):
-  print double-sided with **flip on long edge** for portrait paper or **flip on short edge** for
-  landscape (square paper counts as portrait). Each back is placed at its front's position
-  mirrored across the page; the artwork itself is never mirrored. The back preview is shown as
-  seen from the back, so the order of badges looks reversed. A back page is always printed, even
-  when blank, so later sheets stay aligned. Crop marks and outlines are printed on fronts only.
-  Use **Print Test Sheet** to print the previewed sheet's front and back and hold it up to the
-  light before printing everything; how well the two sides line up depends on your printer.
-  The duplex layout has been checked in the browser and PDF, but not yet on physical printers.
-
-The browser cannot choose duplex or binding settings for you (`window.print()` takes no options),
-so pick them in the print dialog. A saved PDF must later be printed with the same settings.
-
-When you print, the app takes a snapshot of the design and the selected rows, lays every page out
-off-screen, and waits for fonts, pictures and text fitting to settle before opening the print
-dialog. If a picture cannot be loaded it says so and lets you try again, print anyway or cancel.
-
-## Template format
-
-Templates are saved and exported as JSON with a `version` number (currently `1`): shared card
-geometry (`card`), the sides mode (`sidedness`), a `sides.front` design and an optional
-`sides.back` design (kept while unused), page settings including `printMethod`, and the picture
-store (`assets`: id → `{ name, dataUrl }`). Every stored or imported template is validated
-against that shape (`src/lib/template-schema.ts`); a file with another version or a different
-shape is rejected rather than repaired. An import that cannot be used shows a message and changes
-nothing.
-
-There is no migration code yet. When the format next changes, bump `TEMPLATE_VERSION` and add the
-upgrade step to `template-schema.ts`.
-
-## Printing tips
-
-- In the print dialog set **scale to 100%** (not "fit to page"), **margins to None**, and
-  turn on **Background graphics** so colour bands print. Choose _Save as PDF_ to get a file.
-- Paper size in the dialog should match the one chosen in the app; the page is sized via
-  `@page` so most browsers pick it up automatically.
-- A 100 × 140 mm card (the default) fits a standard A6 lanyard holder and goes four to an
-  A4 sheet with a 5 mm margin. Exact A6 (105 × 148) only fits one per A4 portrait sheet with
-  printer margins (two in landscape), so choose it only if your holder is tight.
-
-## Project layout
-
-```
-tests/
-  unit/              pure-function tests (run in Node)
-  ui/                Playwright end-to-end tests + helpers
-src/
-  components/
-    App.tsx          tabs + top bar
-    DataPanel.tsx    CSV upload, preview, per-column length stats
-    Designer.tsx     canvas, drag/resize, keyboard shortcuts, zoom
-    Layers.tsx       element list, add buttons, z-order
-    Inspector.tsx    properties for the card / selected element
-    Previews.tsx     shortest / median / longest fit check
-    PrintPanel.tsx   print method, sheet/face preview, summary, print run
-    SideSwitcher.tsx Front / Back navigation above the canvas
-    TemplateBasics.tsx  card size, sides mode, side background
-    Card.tsx         renders one face of a badge from template + side + row
-    TextBox.tsx      text element with shrink-to-fit measurement
-    ui.tsx           app compositions of Park UI controls
-    park/            Park UI Solid component source
-  theme/             Park UI tokens and component recipes
-  lib/
-    types.ts         Template / element / dataset types
-    template.ts      defaults, placeholders, sheet layout maths, palette, picture store
-    sides.ts         which design each face shows; cloning sides
-    template-schema.ts  validation of stored and imported templates
-    print-plan.ts    badges → pages with explicit front/back placements, crop marks
-    print-ready.ts   waits for fonts, pictures and text fitting before printing
-    stats.ts         shortest / median / longest per column
-    csv.ts           PapaParse wrapper + sample roster
-    images.ts        image upload → data URL with downscaling
-    storage.ts       IndexedDB key-value store, localStorage fallback
-    store.ts         Solid store, side being edited, undo/redo, persistence
-```
+[GNU Affero General Public License v3.0](LICENSE).
